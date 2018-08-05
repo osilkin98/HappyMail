@@ -14,7 +14,7 @@ def get_model():
                                   output_dim=num_features,      # our output is going to be
                                   input_length=input_length))   # (features x input_length)
 
-    # input: (features x input_length) == 40 x 200
+    # input: (input_length x features) == 200 x 40
     model.add(ks.layers.Conv1D(filters=num_features,            # We use the same amount of filters as features
                                kernel_size=5,                   # kernel_size = 5 for a window of +- 2 words away
                                padding='same'))                 # use 0-padding
