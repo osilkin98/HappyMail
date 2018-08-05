@@ -36,4 +36,10 @@ def get_model():
     # Dropout layer to help in creating connections within the actual network
     model.add(ks.layers.Dropout(rate=dropout_rate))
 
-    # outputs: (features*2 x input_length/8) == 80 x 25
+    # Dense fully connected layer with input: num_features*2 == 80
+    model.add(ks.layers.Dense(units=num_features*2))
+
+    model.add(ks.layers.Dense(units=2))
+
+
+
