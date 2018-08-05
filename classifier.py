@@ -22,7 +22,7 @@ def get_model():
     # input: (features x input_length) == 40 x 200
     model.add(ks.layers.MaxPooling1D(pool_size=4))
 
-    # input: (features x input_length/4) == 40 x 50
+    # input: (input_length/4 x features) == 50 x 40
     model.add(ks.layers.Conv1D(filters=num_features*2, kernel_size=5, padding='same', activation='relu'))
 
     # input: (features*2 x input_length/4) == 80 x 50
