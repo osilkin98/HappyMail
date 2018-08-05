@@ -19,7 +19,7 @@ def get_model():
                                kernel_size=5,                   # kernel_size = 5 for a window of +- 2 words away
                                padding='same'))                 # use 0-padding
 
-    # input: (features x input_length) == 40 x 200
+    # input: (input_length x features) == 200 x 40
     model.add(ks.layers.MaxPooling1D(pool_size=4))
 
     # input: (input_length/4 x features) == 50 x 40
