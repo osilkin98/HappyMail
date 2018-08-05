@@ -39,7 +39,11 @@ def get_model():
     # Dense fully connected layer with input: num_features*2 == 80
     model.add(ks.layers.Dense(units=num_features*2))
 
-    model.add(ks.layers.Dense(units=2))
+    model.add(ks.layers.Dense(units=2, activation='sigmoid'))
+
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
+
+
 
 
 
