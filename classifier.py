@@ -2,9 +2,11 @@ import keras as ks
 
 
 def get_model():
-    vocab_size = 1000
-    num_features = 40
-    input_length = 200
+    vocab_size = 1000   # we'll define only 1000 unique words in our vocabulary; not a lot of words needed
+    num_features = 40   # 40 features on each word vector, same amount of features as spotify's latent audio space
+    input_length = 200  # input length of 200 words
+
+    dropout_rate = 0.3  # dropout rate of 30%
 
     model = ks.Sequential()
     # input is going to be
@@ -25,5 +27,13 @@ def get_model():
 
     # input: (features*2 x input_length/4) == 80 x 50
     model.add(ks.layers.MaxPooling1D(pool_size=4))
+    # outputs: (input_length/8 x features*2) == 25 x 80
+    #    |
+    #    |
+    #    V
+    # input
+
+    # Dropout layer to help in creating connections within the actual network
+    model.add(ks.layers.Dropout(rate=dropout_rate))
 
     # outputs: (features*2 x input_length/8) == 80 x 25
