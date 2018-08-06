@@ -72,7 +72,7 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
         # default labels are positive & negative
         labels = {'positive': '', 'negative': ''}
 
-    # TODO: scrape the gmail api for the data
+
 
     # all_labels is a json object of the form { "labels": [ ... ] }
     all_labels = service.users().labels().list(userId=keys.user_id).execute()
@@ -87,3 +87,6 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
             labels[label['name']] = label['id']
 
             # we could perhaps write to a file at this point since we have
+            # TODO: implement function to go through and get the information from the labels into the file
+
+    return labels
