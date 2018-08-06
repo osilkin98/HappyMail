@@ -44,8 +44,15 @@ def get_model():
 
     model.add(ks.layers.Dense(units=1, activation='sigmoid'))
 
+    # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
 
+    return model
+
+
+if __name__ == '__main__':
+    my_model = get_model()
+    print(my_model.summary())
 
 
 
