@@ -4,6 +4,7 @@ from httplib2 import Http
 from oauth2client import file, client, tools
 import os
 import numpy as np
+import keys
 
 
 # Create Gmail Service
@@ -69,6 +70,20 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
     if labels is None:
 
         # default labels are positive & negative
-        labels = ('positive', 'negative')
+        labels = {'positive': '', 'negative': ''}
 
     # TODO: scrape the gmail api for the data
+
+    # all_labels is a json object of the form { "labels": [ ... ] }
+    all_labels = service.users().labels().list(userId=keys.user_id).execute()
+
+    # iterate through all the different label objects that get returned
+    for label in all_labels['labels']:
+
+        # If the label's name matches that in the dictionary
+        if label['name'] in labels:
+
+            # set the label's ID in our dictionary
+            labels[label['name']] = label['id']
+
+            # we could perhaps write to a file at this point since we have
