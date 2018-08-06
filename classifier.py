@@ -33,6 +33,9 @@ def get_model():
     #    V
     # input
 
+    # Flatten layer
+    model.add(ks.layers.Flatten())
+
     # Dropout layer to help in creating connections within the actual network
     model.add(ks.layers.Dropout(rate=dropout_rate))
 
