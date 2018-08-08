@@ -3,9 +3,9 @@ from apiclient.discovery import build
 from httplib2 import Http
 from oauth2client import file, client, tools
 import os
-import numpy as np
+# import numpy as np
 import keys
-import bs4 as bs
+# import bs4 as bs
 import random
 
 
@@ -233,3 +233,6 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
     # If we put it in the mode to not overwrite the file and it throws the error then we catch it and print it out
     except FileExistsError as fee:
         print(fee)
+
+    finally:
+        return messages, message_labels
