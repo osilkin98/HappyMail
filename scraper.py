@@ -45,9 +45,7 @@ def get_gmail_service(filepath="{}/credentials.json".format(os.getcwd()), scope_
 #           the default parameter will retrieve should the user fail to provide it
 #
 # Return:   Returns a list of messages
-def get_messages_from_list(service=get_gmail_service(), labels=None, max_results=50,
-                           include_spam=False, page_token=None, query=None):
-
+def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=False):
 
     # Since we want to separate the data from the labels, we'll create
     # Two parallel arrays for the data we retrieve from the Gmail API
@@ -56,46 +54,52 @@ def get_messages_from_list(service=get_gmail_service(), labels=None, max_results
 
     try:
 
+        for label, label_id in labels.items():
 
-        label_ids = None
+            """ returns a json object of the form:
+            {
+                "messages": [
+                    {
+                        "id": "message_id"
+                        "threadId": "thread_id"
+                        "labelIds": [
+                            "label_ids"
+                            ...
+                        ]
+                    } 
+                    ....
+                ]
+            }
+            
+            The actual contents of the message aren't provided, only the IDs so you can make requests to
+            retrieve the actual message that the id maps to
+            
+            """
+            # Although the labelIds parameter accepts a list of label IDs, we are aggregating by
+            # Specific label so we will simply wrap the label_id extracted from the labels
+            # Dictionary passed in in a list() call, so it only returns messages associated with one LabelId
+            messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=list(label_id),
+                                                            includeSpamTrash=include_spam).execute()
 
-        # If we were passed a valid labels dictionary
-        if labels is not None:
-            label_ids = list(labels.values())
+            # We want to extract the contents of the messages so we have to actually iterate through the
+            # list and call the messages().get() method for each message
+            for message_meta in messages_meta['messages']:
 
-        """ returns a json object of the form:
-        {
-            "messages": [
-                {
-                    "id": "message_id"
-                    "threadId": "thread_id"
-                    "labelIds": [
-                        "label_ids"
-                        ...
-                    ]
-                } 
-                ....
-            ]
-        }
-        
-        The actual contents of the message aren't provided, only the IDs so you can make requests to
-        retrieve the actual message that the id maps to
-        
-        """
+                # This returns the full message
+                message_full = service.users().messages().get(id=message_meta['id'],
+                                                              userId = keys.user_id).execute()
 
-        messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=label_ids,
-                                                        includeSpamTrash=include_spam,
-                                                        pageToken=page_token, q=query).execute()
-
-        # We want to extract the contents of the messages
-        for message_meta in messages_meta['messages']:
-
-
+                # We add the body of the message to our messages array, and its respective label
+                messages.append(message_full['body'])
+                message_labels.append(label)
 
     except apiclient.errors.HttpError as he:
         print(he)
 
     except apiclient.errors.Error as e:
+        print(e)
+
+    except Exception as e:
         print(e)
 
     finally:
