@@ -228,6 +228,8 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
             for i in range(len(messages)):
                 datafile.write("<pre label=\"{}\">\n{}\n</pre>\n".format(message_labels[i], messages[i]))
 
+        print("Successfully wrote data to {}".format(outfile))
+
     # If we put it in the mode to not overwrite the file and it throws the error then we catch it and print it out
     except FileExistsError as fee:
         print(fee)
