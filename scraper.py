@@ -131,6 +131,7 @@ def get_label_id_dict(labels, service=get_gmail_service()):
 
 
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
+# None selects the default labels to be used
 def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
 
     # if the user select the default outfile
@@ -160,24 +161,7 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
     if labels is None:
 
         # default labels are positive & negative
-        labels = {'positive': '', 'negative': ''}
+        labels = ('positive', 'negative')
 
-
-
-    # all_labels is a json object of the form { "labels": [ ... ] }
-    all_labels = service.users().labels().list(userId=keys.user_id).execute()
-
-    # iterate through all the different label objects that get returned
-    for label in all_labels['labels']:
-
-        # If the label's name matches that in the dictionary
-        if label['name'] in labels:
-
-            # set the label's ID in our dictionary
-            labels[label['name']] = label['id']
-
-            # we could perhaps write to a file at this point since we have
-
-            # TODO: implement function to go through and get the information from the labels into the file
-
-    return labels
+    # This returns us a dictionary with the label names as keys and their ID as the value they map to
+    labels_dict = get_label_id_dict(labels=labels, service=service)
