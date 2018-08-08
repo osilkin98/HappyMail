@@ -5,6 +5,51 @@ from oauth2client import file, client, tools
 import os
 import numpy as np
 import keys
+import bs4 as bs
+import random
+
+
+# Shuffle the given messages along with their labels
+# Assumption is that messages and labels have matching indices
+def shuffle_messages(messages, labels, seed=None):
+
+    # We seed the random function so as to get unique swappings each time
+    random.seed(a=seed)
+
+    try:
+        # Declare this beforehand so as to avoid excess function calls on the stack
+        messages_length = len(messages)
+
+        # Since the length of the labels array will only be used in this assert statement,
+        # There's no sensible reason to save it
+        assert messages_length == len(labels)
+
+        assert messages_length > 1
+
+        k = 0
+
+        for i in range(messages_length):
+            # Get a random integer that isn't equal to the current index
+            while k == i:
+                # Keep generating the random integer
+                k = random.randint(a=0, b=messages_length - 1)
+
+            # Swap the messages
+            messages[i], messages[k] = messages[k], messages[i]
+
+            # Swap the labels
+            labels[i], labels[k] = labels[k], labels[i]
+
+    # in the case that one of the assert statements fail
+    except AssertionError as ae:
+        print("The messages and label arrays have mismatching lengths, or are less than or equal to 1" +
+              "\nMessages length: {}\nLabels length: {}".format(len(messages), len(labels)))
+
+        print("Error printout: {}".format(ae))
+
+    finally:
+
+        return messages, labels
 
 
 # Create Gmail Service
@@ -130,6 +175,8 @@ def get_label_id_dict(labels, service=get_gmail_service()):
     return labels_dict
 
 
+
+
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
 # None selects the default labels to be used
 def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
@@ -165,3 +212,6 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
 
     # This returns us a dictionary with the label names as keys and their ID as the value they map to
     labels_dict = get_label_id_dict(labels=labels, service=service)
+
+    messages, message_labels = get_messages_from_labels(labels=labels_dict, service=service, include_spam=True)
+
