@@ -40,6 +40,68 @@ def get_gmail_service(filepath="{}/credentials.json".format(os.getcwd()), scope_
         return service
 
 
+# Args:     Labels is a dict object in which the key is the label's name and the value is the ID
+#           Query is a string object, service is (obviously) the Gmail service object, which
+#           the default parameter will retrieve should the user fail to provide it
+#
+# Return:   Returns a list of messages
+def get_messages_from_list(service=get_gmail_service(), labels=None, max_results=50,
+                           include_spam=False, page_token=None, query=None):
+
+
+    # Since we want to separate the data from the labels, we'll create
+    # Two parallel arrays for the data we retrieve from the Gmail API
+    messages = []
+    message_labels = []
+
+    try:
+
+
+        label_ids = None
+
+        # If we were passed a valid labels dictionary
+        if labels is not None:
+            label_ids = list(labels.values())
+
+        """ returns a json object of the form:
+        {
+            "messages": [
+                {
+                    "id": "message_id"
+                    "threadId": "thread_id"
+                    "labelIds": [
+                        "label_ids"
+                        ...
+                    ]
+                } 
+                ....
+            ]
+        }
+        
+        The actual contents of the message aren't provided, only the IDs so you can make requests to
+        retrieve the actual message that the id maps to
+        
+        """
+
+        messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=label_ids,
+                                                        includeSpamTrash=include_spam,
+                                                        pageToken=page_token, q=query).execute()
+
+        # We want to extract the contents of the messages
+        for message_meta in messages_meta['messages']:
+
+
+
+    except apiclient.errors.HttpError as he:
+        print(he)
+
+    except apiclient.errors.Error as e:
+        print(e)
+
+    finally:
+        return messages, message_labels
+
+
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
 def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
 
@@ -87,6 +149,7 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
             labels[label['name']] = label['id']
 
             # we could perhaps write to a file at this point since we have
+
             # TODO: implement function to go through and get the information from the labels into the file
 
     return labels
