@@ -107,6 +107,29 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
         return messages, message_labels
 
 
+# Takes the users labels as input and returns their IDs in a dict
+# labels is an iterable array/tuple that contains the names of the desired labels
+# Capitalization is required
+def get_label_id_dict(labels, service=get_gmail_service()):
+
+    # all_labels is a json object of the form { "labels": [ ... ] }
+    all_labels = service.users().labels().list(userId=keys.user_id).execute()
+
+    # This is the actual dict that will be returned
+    labels_dict = dict()
+
+    # iterate through all the different label objects that get returned
+    for label in all_labels['labels']:
+
+        # If the label's name matches that in the dictionary
+        if label['name'] in labels:
+
+            # set the label's ID in our dictionary
+            labels_dict[label['name']] = label['id']
+
+    return labels_dict
+
+
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
 def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
 
