@@ -175,8 +175,6 @@ def get_label_id_dict(labels, service=get_gmail_service()):
     return labels_dict
 
 
-
-
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
 # None selects the default labels to be used
 def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
@@ -194,6 +192,11 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
 
             # Then we return
             return None
+
+        else:
+            # We concatenate the cwd with the default outfile we declared earlier
+            # As it will be
+            outfile = "{}/{}".format(os.getcwd(), outfile)
 
     else:
 
