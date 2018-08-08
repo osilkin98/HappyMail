@@ -218,3 +218,16 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
 
     messages, message_labels = get_messages_from_labels(labels=labels_dict, service=service, include_spam=True)
 
+    messages, message_labels = shuffle_messages(messages=messages, labels=message_labels)
+
+    try:
+        # try and open the outfile if it already
+        mode_key = 'x' if not overwrite_file else 'w'
+        with open(file=outfile, mode=mode_key) as datafile:
+
+            for i in range(len(messages)):
+                datafile.write("<pre label=\"{}\">\n{}\n</pre>\n".format(message_labels[i], messages[i]))
+
+    # If we put it in the mode to not overwrite the file and it throws the error then we catch it and print it out
+    except FileExistsError as fee:
+        print(fee)
