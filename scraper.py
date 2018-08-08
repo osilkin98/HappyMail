@@ -94,7 +94,8 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                 message_labels.append(label)
 
     except apiclient.errors.HttpError as he:
-        print(he)
+        print("Got HttpError in get_messages_from_label: {}".format(he))
+        print("This is most likely caused by sending too many requests to the Gmail Service")
 
     except apiclient.errors.Error as e:
         print(e)
