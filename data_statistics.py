@@ -48,6 +48,16 @@ class DataStatistics(object):
         return mode, max_length_seen
 
 
+    # Computes the median by using python's default sorting algorithm which runs in O(n log n)
+    @staticmethod
+    def compute_median(data):
+        data = data.sort()
+        N = len(data)
+
+        return float(data[N/2]) if N % 2 == 0 else float(data[N/2 - 1] + data[N/2]) / 2
+
+
+
     # Returns standard deviation, variance
     @classmethod
     def compute_standard_deviation(cls, data, average=None):
