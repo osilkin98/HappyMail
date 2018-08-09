@@ -118,6 +118,11 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
             retrieve the actual message that the id maps to
             
             """
+            label_list = [label_id]
+
+            assert len(label_list) == 1
+
+            # print("Label: {}\nLabel ID: {}\nlabel_list: {}\n\n".format(label, label_id, label_list))
             # Although the labelIds parameter accepts a list of label IDs, we are aggregating by
             # Specific label so we will simply wrap the label_id extracted from the labels
             # Dictionary passed in in a list() call, so it only returns messages associated with one LabelId
