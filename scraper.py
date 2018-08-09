@@ -13,7 +13,6 @@ import random
 # Shuffle the given messages along with their labels
 # Assumption is that messages and labels have matching indices
 def shuffle_messages(messages, labels, seed=None):
-
     # We seed the random function so as to get unique swappings each time
     random.seed(a=seed)
 
@@ -55,7 +54,6 @@ def shuffle_messages(messages, labels, seed=None):
 
 # Create Gmail Service
 def get_gmail_service(filepath="{}/credentials.json".format(os.getcwd()), scope_mode='modify'):
-
     # set the Gmail Scope
     SCOPES = "https://www.googleapis.com/auth/gmail.{}".format(scope_mode)
 
@@ -92,7 +90,6 @@ def get_gmail_service(filepath="{}/credentials.json".format(os.getcwd()), scope_
 #
 # Return:   Returns a list of messages
 def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=False):
-
     # Since we want to separate the data from the labels, we'll create
     # Two parallel arrays for the data we retrieve from the Gmail API
     messages = []
@@ -158,7 +155,6 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 # labels is an iterable array/tuple that contains the names of the desired labels
 # Capitalization is required
 def get_label_id_dict(labels, service=get_gmail_service()):
-
     # all_labels is a json object of the form { "labels": [ ... ] }
     all_labels = service.users().labels().list(userId=keys.user_id).execute()
 
@@ -170,7 +166,6 @@ def get_label_id_dict(labels, service=get_gmail_service()):
 
         # If the label's name matches that in the dictionary
         if label['name'] in labels:
-
             # set the label's ID in our dictionary
             labels_dict[label['name']] = label['id']
 
@@ -180,7 +175,6 @@ def get_label_id_dict(labels, service=get_gmail_service()):
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
 # None selects the default labels to be used
 def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
-
     # if the user select the default outfile
     if outfile is None:
 
@@ -203,7 +197,6 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
     else:
 
         if os.path.exists(path='{}'.format(outfile)) and not overwrite_file:
-
             print("The file exists at {} and we chose not to overwrite the file".format(outfile))
 
             # Return
@@ -211,7 +204,6 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
 
     # if the user selected the default labels
     if labels is None:
-
         # default labels are positive & negative
         labels = ('positive', 'negative')
 
