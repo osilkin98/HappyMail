@@ -3,6 +3,7 @@ from apiclient.discovery import build
 from httplib2 import Http
 from oauth2client import file, client, tools
 import os
+import base64
 import json
 # import numpy as np
 import keys
@@ -153,10 +154,29 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                         if 'data' not in part['body']:
                             continue
 
-                        messages.append(part['body']['data'])
+                        # If the message was decoded with single apostrophes
+                        if part['body']['data'][-1] == "'":
+                            messages.append(base64.urlsafe_b64decode(
+                                part['body']['data']).rstrip("'").lstrip("b'"))
+
+                        # Otherwise if it was decoded with double apostrophes
+                        else:
+                            messages.append(base64.urlsafe_b64decode(
+                                part['body']['data']).rstrip('"').lstrip('b"'))
                         message_labels.append(label)
+
+                # Otherwise if the message is whole
                 else:
-                    messages.append(message_full['payload']['body']['data'])
+                    # Again, if the message was decoded with encapsulating single apostrophe
+                    if message_full['payload']['body']['data'][-1] == "'":
+                        messages.append(base64.urlsafe_b64decode(
+                            message_full['payload']['body']['data']).rstrip("'").lstrip("b'"))
+
+                    # otherwise if it was decoded with double apostrophes
+                    else:
+                        messages.append(base64.urlsafe_b64decode(
+                            message_full['payload']['body']['data']).rstrip('"').lstrip('b"'))
+
                     message_labels.append(label)
                 # print("Messages: {}\nMessage_labels: {}\n".format(messages, message_labels))
 
