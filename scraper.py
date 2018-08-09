@@ -294,7 +294,7 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
 
 
 # Read the file and
-def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), create_if_not_found=True):
+def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), create_if_not_found=True, shuffle=True):
 
     # If the file doesn't exist
     if not os.path.exists(path=infile) and create_if_not_found:
@@ -313,4 +313,8 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), create
             messages.append(message.contents[0].decode("utf-8"))
             labels.append(message["label"].decode("utf-8"))
 
-    return shuffle_messages(messages=messages, labels=labels)
+    # Control mechanism to allow users to retrieve the data without shuffling it
+    if shuffle:
+        messages, labels = shuffle_messages(messages=messages, labels=labels)
+
+    return messages, labels
