@@ -3,6 +3,7 @@ from apiclient.discovery import build
 from httplib2 import Http
 from oauth2client import file, client, tools
 import os
+import json
 # import numpy as np
 import keys
 # import bs4 as bs
@@ -134,6 +135,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                 message_full = service.users().messages().get(id=message_meta['id'],
                                                               userId = keys.user_id).execute()
 
+                # print(json.dumps(message_full, indent=4))
                 # We add the body of the message to our messages array, and its respective label
                 messages.append(message_full['body'])
                 message_labels.append(label)
