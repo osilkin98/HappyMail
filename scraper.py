@@ -7,7 +7,7 @@ import base64
 import json
 # import numpy as np
 import keys
-# import bs4 as bs
+import bs4 as bs
 import random
 
 
