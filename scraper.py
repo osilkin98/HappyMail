@@ -142,8 +142,23 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 
                 # print(json.dumps(message_full, indent=4))
                 # We add the body of the message to our messages array, and its respective label
-                messages.append(message_full['body'])
-                message_labels.append(label)
+
+                # some of these messages will be segmented in parts so we split up into parts
+                # so we just iterate through and extract as much data as we can
+                # We might have to implement some form of traversal in order for this to be robust and extensible
+                if 'parts' in message_full['payload']:
+                    for part in message_full['payload']['parts']:
+
+                        # if we don't have any data field
+                        if 'data' not in part['body']:
+                            continue
+
+                        messages.append(part['body']['data'])
+                        message_labels.append(label)
+                else:
+                    messages.append(message_full['payload']['body']['data'])
+                    message_labels.append(label)
+                # print("Messages: {}\nMessage_labels: {}\n".format(messages, message_labels))
 
     except apiclient.errors.HttpError as he:
         print("Got HttpError in get_messages_from_label: {}".format(he))
