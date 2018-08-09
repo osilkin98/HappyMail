@@ -126,7 +126,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
             # Although the labelIds parameter accepts a list of label IDs, we are aggregating by
             # Specific label so we will simply wrap the label_id extracted from the labels
             # Dictionary passed in in a list() call, so it only returns messages associated with one LabelId
-            messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=list(label_id),
+            messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=label_list,
                                                             includeSpamTrash=include_spam).execute()
 
             # print(messages_meta)
@@ -138,7 +138,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                 # print(message_meta)
                 # This returns the full message
                 message_full = service.users().messages().get(id=message_meta['id'],
-                                                              userId = keys.user_id).execute()
+                                                              userId=keys.user_id).execute()
 
                 # print(json.dumps(message_full, indent=4))
                 # We add the body of the message to our messages array, and its respective label
