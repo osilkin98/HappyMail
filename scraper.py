@@ -96,7 +96,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
     message_labels = []
 
     try:
-
+        print("labels:")
         for label, label_id in labels.items():
 
             """ returns a json object of the form:
@@ -124,10 +124,13 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
             messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=list(label_id),
                                                             includeSpamTrash=include_spam).execute()
 
+            # print(messages_meta)
+
             # We want to extract the contents of the messages so we have to actually iterate through the
             # list and call the messages().get() method for each message
             for message_meta in messages_meta['messages']:
 
+                # print(message_meta)
                 # This returns the full message
                 message_full = service.users().messages().get(id=message_meta['id'],
                                                               userId = keys.user_id).execute()
