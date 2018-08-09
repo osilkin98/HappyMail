@@ -257,7 +257,7 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
 
     try:
         # try and open the outfile if it already
-        mode_key = 'x' if not overwrite_file else 'w'
+        mode_key = 'x' if not overwrite_file else 'w'  # type: str
         with open(file=outfile, mode=mode_key) as datafile:
 
             for i in range(len(messages)):
