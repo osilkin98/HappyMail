@@ -13,8 +13,11 @@ class DataStatistics(object):
         self.length_map = self.create_length_map(data=self.data)
         self.N = len(self.data)
         self.mean = self.compute_mean(data=self.data)
-        self.std_dev, self.variance = self.compute_standard_deviation(data=self.data, average=self.mean)
-        self.median = self.compute_median(data=self.data)
+        self.std_dev, self.variance = self.compute_standard_deviation(data=self.data_lengths, average=self.mean)
+        print(self.data)
+        self.median = self.compute_median(data=self.data_lengths)
+        self.mode, self.mode_count = self.compute_mode(data=self.data)
+
 
 
     # pretty straightforward
