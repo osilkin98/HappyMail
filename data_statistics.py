@@ -73,7 +73,15 @@ class DataStatistics(object):
         if average is None:
             average = cls.compute_mean(data)
         try:
-            variance = float(reduce((lambda data, sum: sum + (data - average) ** 2), data)) / float(len(data))
+            sun = 0
+            thestr = ""
+            for num in data:
+                thestr += "{} + ".format(num)
+                sun += (num - average) ** 2
+
+            print(thestr)
+            variance = float(sun) / len(data)
+
 
         except ZeroDivisionError:
             record_frame = inspect.stack()[0]
