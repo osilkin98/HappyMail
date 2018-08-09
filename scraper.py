@@ -275,8 +275,6 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
 
     messages, message_labels = get_messages_from_labels(labels=labels_dict, service=service, include_spam=True)
 
-    messages, message_labels = shuffle_messages(messages=messages, labels=message_labels)
-
     try:
         # try and open the outfile if it already
         mode_key = 'x' if not overwrite_file else 'w'  # type: str
@@ -295,3 +293,24 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
         return messages, message_labels
 
 
+# Read the file and
+def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), create_if_not_found=True):
+
+    # If the file doesn't exist
+    if not os.path.exists(path=infile) and create_if_not_found:
+        messages, labels = create_training_data_from_labels()
+
+    # Otherwise we can just simply obtain them by using BeautifulSoup
+    else:
+
+        datafile = open(file=infile)
+        message_tags = bs.BeautifulSoup(datafile, "html.parser").find_all(name="pre")
+        datafile.close()
+
+        messages, labels = [], []
+
+        for message in message_tags:
+            messages.append(message.contents[0].decode("utf-8"))
+            labels.append(message["label"].decode("utf-8"))
+
+    return shuffle_messages(messages=messages, labels=labels)
