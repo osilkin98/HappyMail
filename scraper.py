@@ -96,112 +96,112 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
     messages = []
     message_labels = []
 
-    # try:
-    print("labels:")
-    for label, label_id in labels.items():
+    try:
 
-        """ returns a json object of the form:
-        {
-            "messages": [
-                {
-                    "id": "message_id"
-                    "threadId": "thread_id"
-                    "labelIds": [
-                        "label_ids"
-                        ...
-                    ]
-                } 
-                ....
-            ]
-        }
-        
-        The actual contents of the message aren't provided, only the IDs so you can make requests to
-        retrieve the actual message that the id maps to
-        
-        """
-        label_list = [label_id]
+        for label, label_id in labels.items():
 
-        assert len(label_list) == 1
+            """ returns a json object of the form:
+            {
+                "messages": [
+                    {
+                        "id": "message_id"
+                        "threadId": "thread_id"
+                        "labelIds": [
+                            "label_ids"
+                            ...
+                        ]
+                    } 
+                    ....
+                ]
+            }
+            
+            The actual contents of the message aren't provided, only the IDs so you can make requests to
+            retrieve the actual message that the id maps to
+            
+            """
+            label_list = [label_id]
 
-        # print("Label: {}\nLabel ID: {}\nlabel_list: {}\n\n".format(label, label_id, label_list))
-        # Although the labelIds parameter accepts a list of label IDs, we are aggregating by
-        # Specific label so we will simply wrap the label_id extracted from the labels
-        # Dictionary passed in in a list() call, so it only returns messages associated with one LabelId
-        messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=label_list,
-                                                        includeSpamTrash=include_spam).execute()
+            assert len(label_list) == 1
 
-        # print(messages_meta)
+            # print("Label: {}\nLabel ID: {}\nlabel_list: {}\n\n".format(label, label_id, label_list))
+            # Although the labelIds parameter accepts a list of label IDs, we are aggregating by
+            # Specific label so we will simply wrap the label_id extracted from the labels
+            # Dictionary passed in in a list() call, so it only returns messages associated with one LabelId
+            messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=label_list,
+                                                            includeSpamTrash=include_spam).execute()
 
-        # We want to extract the contents of the messages so we have to actually iterate through the
-        # list and call the messages().get() method for each message
-        for message_meta in messages_meta['messages']:
+            # print(messages_meta)
 
-            # print(message_meta)
-            # This returns the full message
-            message_full = service.users().messages().get(id=message_meta['id'],
-                                                          userId=keys.user_id).execute()
+            # We want to extract the contents of the messages so we have to actually iterate through the
+            # list and call the messages().get() method for each message
+            for message_meta in messages_meta['messages']:
 
-            # print(json.dumps(message_full, indent=4))
-            # We add the body of the message to our messages array, and its respective label
+                # print(message_meta)
+                # This returns the full message
+                message_full = service.users().messages().get(id=message_meta['id'],
+                                                              userId=keys.user_id).execute()
 
-            # some of these messages will be segmented in parts so we split up into parts
-            # so we just iterate through and extract as much data as we can
-            # We might have to implement some form of traversal in order for this to be robust and extensible
-            if 'parts' in message_full['payload']:
-                for part in message_full['payload']['parts']:
+                # print(json.dumps(message_full, indent=4))
+                # We add the body of the message to our messages array, and its respective label
 
-                    # if we don't have any data field
-                    if 'data' not in part['body']:
-                        continue
+                # some of these messages will be segmented in parts so we split up into parts
+                # so we just iterate through and extract as much data as we can
+                # We might have to implement some form of traversal in order for this to be robust and extensible
+                if 'parts' in message_full['payload']:
+                    for part in message_full['payload']['parts']:
 
-                    soup = bs.BeautifulSoup(base64.urlsafe_b64decode(part['body']['data']).decode("utf-8"))
+                        # if we don't have any data field
+                        if 'data' not in part['body']:
+                            continue
+
+                        soup = bs.BeautifulSoup(base64.urlsafe_b64decode(part['body']['data']).decode("utf-8"))
+
+                        for script in soup(['script', 'style']):
+                            script.decompose()
+
+                        messages.append(soup.get_text())
+
+                        '''
+                        # If the message was decoded with single apostrophes
+                        if part['body']['data'][-1] == "'":
+                            messages.append(base64.urlsafe_b64decode(part['body']['data']).rstrip("'").lstrip("b'"))
+    
+                        # Otherwise if it was decoded with double apostrophes
+                        else:
+                            messages.append(base64.urlsafe_b64decode(part['body']['data']).rstrip('"').lstrip('b"'))
+    
+                        print("Appending (fragmented)")
+                        '''
+                        message_labels.append(label)
+
+                # Otherwise if the message is whole
+                else:
+
+                    soup = bs.BeautifulSoup(base64.urlsafe_b64decode(
+                        message_full['payload']['body']['data']).decode("utf-8"))
 
                     for script in soup(['script', 'style']):
                         script.decompose()
 
                     messages.append(soup.get_text())
 
-                    '''
-                    # If the message was decoded with single apostrophes
-                    if part['body']['data'][-1] == "'":
-                        messages.append(base64.urlsafe_b64decode(part['body']['data']).rstrip("'").lstrip("b'"))
-
-                    # Otherwise if it was decoded with double apostrophes
-                    else:
-                        messages.append(base64.urlsafe_b64decode(part['body']['data']).rstrip('"').lstrip('b"'))
-
-                    print("Appending (fragmented)")
-                    '''
                     message_labels.append(label)
+                    '''
+                    # Again, if the message was decoded with encapsulating single apostrophe
+                    if message_full['payload']['body']['data'][-1] == "'":
+                        messages.append(base64.urlsafe_b64decode(
+                            message_full['payload']['body']['data']).rstrip("'").lstrip("b'"))
+    
+                    # otherwise if it was decoded with double apostrophes
+                    else:
+                        decoded64 = base64.urlsafe_b64decode(message_full['payload']['body']['data'])
+                        messages.append(decoded64.rstrip('"').lstrip('b"'))
+    
+                    print("Appending")'''
 
-            # Otherwise if the message is whole
-            else:
 
-                soup = bs.BeautifulSoup(base64.urlsafe_b64decode(
-                    message_full['payload']['body']['data']).decode("utf-8"))
+                # print("Messages: {}\nMessage_labels: {}\n".format(messages, message_labels))
 
-                for script in soup(['script', 'style']):
-                    script.decompose()
-
-                messages.append(soup.get_text())
-
-                message_labels.append(label)
-                '''
-                # Again, if the message was decoded with encapsulating single apostrophe
-                if message_full['payload']['body']['data'][-1] == "'":
-                    messages.append(base64.urlsafe_b64decode(
-                        message_full['payload']['body']['data']).rstrip("'").lstrip("b'"))
-
-                # otherwise if it was decoded with double apostrophes
-                else:
-                    decoded64 = base64.urlsafe_b64decode(message_full['payload']['body']['data'])
-                    messages.append(decoded64.rstrip('"').lstrip('b"'))
-
-                print("Appending")'''
-                
-                
-            # print("Messages: {}\nMessage_labels: {}\n".format(messages, message_labels))
-    '''
     except apiclient.errors.HttpError as he:
         print("Got HttpError in get_messages_from_label: {}".format(he))
         print("This is most likely caused by sending too many requests to the Gmail Service")
@@ -209,8 +209,8 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
     except apiclient.errors.Error as e:
         print(e)
 
-    finally:'''
-    return messages, message_labels
+    finally
+        return messages, message_labels
 
 
 # Takes the users labels as input and returns their IDs in a dict
