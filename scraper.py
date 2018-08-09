@@ -209,7 +209,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
     except apiclient.errors.Error as e:
         print(e)
 
-    finally
+    finally:
         return messages, message_labels
 
 
