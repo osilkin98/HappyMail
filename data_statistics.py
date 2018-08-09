@@ -25,9 +25,9 @@ class DataStatistics(object):
     def compute_mean(data):
         sum = 0
         for num in data:
-            sum += num
+            sum += len(num)
 
-        return sum / len(data)
+        return float(sum) / float(len(data))
 
     @staticmethod
     def create_length_map(data):
