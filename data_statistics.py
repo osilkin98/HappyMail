@@ -13,6 +13,7 @@ class DataStatistics(object):
         self.length_map = dict()
         self.N = len(self.data)
 
+    # pretty straightforward
     @staticmethod
     def compute_mean(data):
         sum = 0
@@ -21,6 +22,33 @@ class DataStatistics(object):
 
         return sum / len(data)
 
+    @staticmethod
+    def create_length_map(data):
+        length_map = {}
+
+        for message in data:
+            if len(message) in length_map:
+                length_map[len(message)] += 1
+            else:
+                length_map[len(message)] = 1
+
+        return length_map
+
+    @classmethod
+    def compute_mode(cls, data):
+        length_map = cls.create_length_map(data)
+
+        max_length_seen, mode = 0, 0
+
+        for number, count in length_map.items():
+
+            # hopefully it doesn't register this as a tuple
+            max_length_seen, mode = (count, number) if count > max_length_seen else (max_length_seen, mode)
+
+        return mode, max_length_seen
+
+
+    # Returns standard deviation, variance
     @classmethod
     def compute_standard_deviation(cls, data, average=None):
         if average is None:
@@ -35,7 +63,8 @@ class DataStatistics(object):
 
             return 0, 0
 
-        return
+        return math.sqrt(variance), variance
+
 
 
 
