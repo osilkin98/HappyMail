@@ -214,6 +214,7 @@ def get_label_id_dict(labels, service=get_gmail_service()):
 
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
 # None selects the default labels to be used
+# The data that gets written to training_data.txt is encoded as base64 to save space
 def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
     # if the user select the default outfile
     if outfile is None:
