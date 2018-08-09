@@ -9,7 +9,7 @@ class DataStatistics(object):
 
     def __init__(self, data=None):
         self.data = data
-        self.data_lengths = list()
+        self.data_lengths = list(map(lambda x: len(x), self.data))
         self.length_map = self.create_length_map(data=self.data)
         self.N = len(self.data)
         self.mean = self.compute_mean(data=self.data)
