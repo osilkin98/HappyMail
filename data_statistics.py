@@ -7,11 +7,15 @@ import math
 # Python class to calculate statistics on datasets
 class DataStatistics(object):
 
-    def __init__(self, data):
+    def __init__(self, data=None):
         self.data = data
         self.data_lengths = list()
-        self.length_map = dict()
+        self.length_map = self.create_length_map(data=self.data)
         self.N = len(self.data)
+        self.mean = self.compute_mean(data=self.data)
+        self.std_dev, self.variance = self.compute_standard_deviation(data=self.data, average=self.mean)
+        self.median = self.compute_median(data=self.data)
+
 
     # pretty straightforward
     @staticmethod
