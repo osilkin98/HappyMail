@@ -14,7 +14,7 @@ class DataStatistics(object):
         self.N = len(self.data)
         self.mean = self.compute_mean(data=self.data)
         self.std_dev, self.variance = self.compute_standard_deviation(data=self.data_lengths, average=self.mean)
-        print(self.data)
+        # print(self.data)
         self.median = self.compute_median(data=self.data_lengths)
         self.mode, self.mode_count = self.compute_mode(data=self.data)
 
@@ -58,9 +58,9 @@ class DataStatistics(object):
     # Computes the median by using python's default sorting algorithm which runs in O(n log n)
     @staticmethod
     def compute_median(data):
-        print(data)
+        # print(data)
         data.sort()
-        print(data)
+        # print(data)
         N = len(data)
 
         return float(data[int(N/2)]) if N % 2 == 0 else float(data[int(N/2) - 1] + data[int(N/2)]) / 2
@@ -79,9 +79,8 @@ class DataStatistics(object):
                 thestr += "{} + ".format(num)
                 sun += (num - average) ** 2
 
-            print(thestr)
+            # print(thestr)
             variance = float(sun) / len(data)
-
 
         except ZeroDivisionError:
             record_frame = inspect.stack()[0]
