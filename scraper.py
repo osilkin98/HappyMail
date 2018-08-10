@@ -293,8 +293,10 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
         return messages, message_labels
 
 
-# Read the file and
-def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), create_if_not_found=True, shuffle=True):
+# Read the datafile and use it to extract the training data
+# If numeric_labels is set to true, we'll use 1's in place of positive, and 0 for negative
+def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeric_labels=True,
+                       create_if_not_found=True, shuffle=True):
 
     # If the file doesn't exist
     if not os.path.exists(path=infile) and create_if_not_found:
@@ -319,5 +321,9 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), create
     # Control mechanism to allow users to retrieve the data without shuffling it
     if shuffle:
         messages, labels = shuffle_messages(messages=messages, labels=labels)
+
+    if numeric_labels:
+        # Replace "positive" and "negative" labels with 1s and 0s respectively
+        labels = list(map(lambda data: 1 if data == "positive" else 0, labels))
 
     return messages, labels
