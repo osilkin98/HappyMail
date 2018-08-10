@@ -74,9 +74,7 @@ class DataStatistics(object):
             average = cls.compute_mean(data)
         try:
             sun = 0
-            thestr = ""
             for num in data:
-                thestr += "{} + ".format(num)
                 sun += (num - average) ** 2
 
             # print(thestr)
