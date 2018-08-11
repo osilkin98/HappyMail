@@ -1,10 +1,13 @@
 import keras as ks
 import scraper as sp
+import json
+from os import getcwd
+
+vocab_size = 4000  # we'll define only 1000 unique words in our vocabulary; not a lot of words needed
+num_features = 40  # 40 features on each word vector, same amount of features as spotify's latent audio space
+input_length = 2000  # input length of 200 words
 
 def get_model():
-    vocab_size = 1000   # we'll define only 1000 unique words in our vocabulary; not a lot of words needed
-    num_features = 40   # 40 features on each word vector, same amount of features as spotify's latent audio space
-    input_length = 2000  # input length of 200 words
 
     dropout_rate = 0.3  # dropout rate of 30%
 
