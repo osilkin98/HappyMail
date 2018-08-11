@@ -59,10 +59,28 @@ def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100, 
     if data is None:
         data, labels = sp.get_data_from_file(create_if_not_found=False)
 
+    # Initialize the tokenizer object with num_words = vocab_size
+    tokenizer = ks.preprocessing.text.Tokenizer(num_words=vocab_size)
 
+    # Tokenize the text that we actually have so the words map to integers
+    tokenizer.fit_on_texts(data)
 
+    # We should save the data that we created into a dictionary for later re-use if needed
+    try:
+        with open('word_indices.json', 'x') as outfile:
+            # dump the word index to a json file and make sure nothing is converted to ascii
+            # due to issues that arise with trying to tokenize unicode characters
+            json.dump(tokenizer.word_index, fp=outfile, ensure_ascii=False)
+    except FileExistsError as FEE:
+        print(FEE)
 
+    X_training = tokenizer.texts_to_sequences(data)
 
+    # Input length will be 2000 because the average character length is ~1100 for emails with
+    # A standard deviation of std = +/- 900 char with as a left-skewed distribution
+    X_training = ks.preprocessing.sequence.pad_sequences(X_training, maxlen=input_length, padding="post")
+
+    # print(X_training)
 
     model.fit(x=X_training, y=labels, epochs=epoch, batch_size=batch)
 
@@ -75,8 +93,12 @@ def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100, 
 
 
 if __name__ == '__main__':
-    my_model = get_model()
-    print(my_model.summary())
+    data, label = sp.get_data_from_file(create_if_not_found=False)
+    for d in data:
+        print(d)
+    train_model_with_data(data, label)
+
+    # train_model_with_data(data=data, labels=label)
 
 
 
