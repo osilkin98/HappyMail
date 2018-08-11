@@ -4,6 +4,7 @@ from httplib2 import Http
 from oauth2client import file, client, tools
 import os
 import base64
+import unicodedata
 import json
 # import numpy as np
 import keys
@@ -312,7 +313,7 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeri
     else:
 
         datafile = open(file=infile)
-        message_tags = bs.BeautifulSoup(datafile, "html.parser").find_all(name="pre")
+        message_tags = bs.BeautifulSoup(datafile, "html.parser").find_all(name="pre", text=True)
         datafile.close()
 
         messages, labels = [], []
@@ -320,9 +321,18 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeri
         # iterate through the messages retrieved
         for message in message_tags:
             # append the messages within the <pre> tag to the array and encode them down into utf-8
-            messages.append(message.contents[0].encode("utf-8").decode("utf-8"))
+            messages.append(str(message.contents[0]))
+            '''
+            print("message.contents[0]: {}".format(type(message.contents[0])))
+            print("message.contents[0].encode(\"utf-8\"): {}".format(type(message.contents[0].encode("utf-8"))))
+            print("message.contents[0].encode(\"utf-8\").decode(\"utf-8\"): {}".format(
+                type(message.contents[0].encode("utf-8").decode("utf-8")))
+            )
+            '''
             # do the same for the labels
             labels.append(message["label"].encode("utf-8").decode("utf-8"))
+            # break
+
 
     # Control mechanism to allow users to retrieve the data without shuffling it
     if shuffle:

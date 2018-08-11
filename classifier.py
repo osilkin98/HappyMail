@@ -54,7 +54,7 @@ def get_model():
 
 
 # Train the model with the data
-def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100):
+def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100, batch=20):
 
     if data is None:
         data, labels = sp.get_data_from_file(create_if_not_found=False)
@@ -64,7 +64,14 @@ def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100):
 
 
 
+    model.fit(x=X_training, y=labels, epochs=epoch, batch_size=batch)
 
+    loss, accuracy = model.evaluate(x=X_training, y=labels, batch_size=batch)
+
+    print("Accuracy: {:0.3%}%\nLoss: {:3f}".format(accuracy, loss))
+
+    # save the model
+    model.save(filepath="{}/models/first_model.h5".format(getcwd()))
 
 
 if __name__ == '__main__':
