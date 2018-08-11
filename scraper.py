@@ -199,7 +199,6 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
     
                     print("Appending")'''
 
-
                 # print("Messages: {}\nMessage_labels: {}\n".format(messages, message_labels))
 
     except apiclient.errors.HttpError as he:
@@ -296,11 +295,18 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
 # Read the datafile and use it to extract the training data
 # If numeric_labels is set to true, we'll use 1's in place of positive, and 0 for negative
 def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeric_labels=True,
-                       create_if_not_found=True, shuffle=True):
+                       create_if_not_found=True, shuffle=True, suppress_warning=False):
 
     # If the file doesn't exist
     if not os.path.exists(path=infile) and create_if_not_found:
         messages, labels = create_training_data_from_labels()
+
+    # If the file doesn't exist and the user doesn't want to create a new file
+    elif not os.path.exists(path=infile) and not create_if_not_found:
+        if not suppress_warning:  # Default: throw an exception
+            raise FileNotFoundError("The Training Data File wasn't found")
+        else:
+            return None, None   # If the user chose to suppress warnings
 
     # Otherwise we can just simply obtain them by using BeautifulSoup
     else:
