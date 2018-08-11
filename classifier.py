@@ -1,5 +1,5 @@
 import keras as ks
-
+import scraper as sp
 
 def get_model():
     vocab_size = 1000   # we'll define only 1000 unique words in our vocabulary; not a lot of words needed
@@ -48,6 +48,20 @@ def get_model():
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
 
     return model
+
+
+# Train the model with the data
+def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100):
+
+    if data is None:
+        data, labels = sp.get_data_from_file(create_if_not_found=False)
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':
