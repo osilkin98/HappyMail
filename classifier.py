@@ -7,6 +7,20 @@ vocab_size = 4000  # we'll define only 1000 unique words in our vocabulary; not 
 num_features = 40  # 40 features on each word vector, same amount of features as spotify's latent audio space
 input_length = 2000  # input length of 200 words
 
+
+# a class to put the email classifier into so that it can run
+class EmailClassifierModel(object):
+
+    def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3, datafile=None):
+        self.vocab_size = vocab_size
+        self.num_features = num_features
+        self.input_length = input_length
+        self.dropout_rate = dropout_rate
+
+        if datafile is None:
+            if os.exists
+
+
 def get_model():
 
     dropout_rate = 0.3  # dropout rate of 30%
