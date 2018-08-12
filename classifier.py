@@ -106,12 +106,28 @@ def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100, 
     model.save(filepath="{}/models/first_model.h5".format(getcwd()))
 
 
+def serialize_text(text, filepath="word_indices.json"):
+    with open(file=filepath, mode='r') as infile:
+        vocab = json.load(infile)
+
+    for key, value in vocab.items():
+        print("{}: {}".format(key, value))
+
+
+
+'''
+# evaluate the model and return a prediction
+def predict(text, filepath="{}/models/first_model.h5".format(getcwd()), model=None):
+'''
+
+
 if __name__ == '__main__':
-    data, label = sp.get_data_from_file(create_if_not_found=False)
+    '''data, label = sp.get_data_from_file(create_if_not_found=False)
     for d in data:
         print(d)
     train_model_with_data(data, label)
-
+    '''
+    serialize_text("")
     # train_model_with_data(data=data, labels=label)
 
 
