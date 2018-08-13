@@ -135,6 +135,11 @@ class EmailClassifierModel(object):
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
 
         return model
+
+    #
+    def train_model_with_data(self, datafile=None, data=None, labels=None, overwrite=True, epoch=100, batch=20):
+
+
 '''
 
 
