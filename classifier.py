@@ -136,8 +136,16 @@ class EmailClassifierModel(object):
 
         return model
 
-    #
-    def train_model_with_data(self, datafile=None, data=None, labels=None, overwrite=True, epoch=100, batch=20):
+
+    # train the model with specified data, or the default datafile if none is provided
+    def train_model_with_data(self, data=None, labels=None, overwrite=True, epoch=100, batch=20):
+
+        d = data
+
+    # to train the model with a different datafile
+    def train_model_with_file(self, datafile=None, overwrite=True, epoch=100, batch=20):
+
+
 
 
 '''
