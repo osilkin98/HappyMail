@@ -39,10 +39,16 @@ class EmailClassifierModel(object):
             if os.path.exists(self.model_file):
                 self.model = keras.models.load_model(filepath=self.model_file)
             else:
-                self.model = self.create_model() if model is None else model
+                self.model = self.create_model(vocab_size=self.vocab_size,
+                                               num_features=self.num_features,
+                                               input_length=self.input_length,
+                                               dropout_rate=self.dropout_rate) if model is None else model
         # Just create a new compiled model if they don't want us to
         else:
-            self.model = self.create_model() if model is None else model
+            self.model = self.create_model(vocab_size=self.vocab_size,
+                                           num_features=self.num_features,
+                                           input_length=self.input_length,
+                                           dropout_rate=self.dropout_rate) if model is None else model
 
         # set the data file
         self.data_file = "{}/training_data.txt".format(getcwd()) if data_file is None else data_file
@@ -84,8 +90,9 @@ class EmailClassifierModel(object):
 
     ''' Utility Methods '''
 
-    # Create a compiled keras model
-    def create_model(self, vocab_size=None, num_features=None, input_length=None, dropout_rate=None):
+    @staticmethod
+    def create_model(vocab_size=4000, num_features=40, input_length=2000, dropout_rate=0.3):
+        """
 
         :param int vocab_size: Maximum number of words to be learned in embedding layer
         :param int num_features: Dimensionality of embedded word vectors, I.E. the number of features they have
