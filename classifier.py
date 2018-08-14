@@ -144,9 +144,32 @@ class EmailClassifierModel(object):
 
 
     # train the model with specified data, or the default datafile if none is provided
-    def train_model_with_data(self, data=None, labels=None, overwrite=True, epoch=100, batch=20):
+    def train_model_with_data(self, data=None, labels=None, savefile=None, overwrite=True, epoch=100, batch=20):
 
-        d = data
+        # In the case no actual data was specified
+        if data is None or labels is None:
+            data, labels = sp.get_data_from_file(infile=self.data_file)
+
+        # If we haven't already loaded in a word index for our tokenizer
+        # We can create a word index by fitting the tokenizer onto the data provided
+        if "word_index" not in dir(d.tokenizer):
+            self.tokenizer.fit_on_texts(data)
+
+            # We should try to write the tokenizer word indices to json index file
+            try:
+                # we can open it in the mode corresponding to whether or not
+                # The user specified if we should overwrite existing data
+                with open(self.index_file, mode='{}'.format('w' if overwrite else 'x')) as outfile:
+                    json.dump(self.tokenizer.word_index, outfile, ensure_ascii=False)
+
+            except FileExistsError as fee:
+                print("File {} already exists, error: [{}]".format(self.index_file, fee))
+
+
+        processed_data = self.tokenizer.texts_to_sequences(data)
+        print(processed_data)
+
+
 
     # to train the model with a different datafile
     def train_model_with_file(self, datafile=None, overwrite=True, epoch=100, batch=20):
