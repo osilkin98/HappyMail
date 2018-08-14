@@ -157,6 +157,9 @@ class EmailClassifierModel(object):
             except FileExistsError as fee:
                 print("File {} already exists, error: [{}]".format(serial_file, fee))
 
+            except PermissionError as pe:
+                print("Permission Error Caught by set_word_index_from_data:\n{}".format(pe))
+
         else:
             print("we have an existing word index and overwrite is turned off")
 
