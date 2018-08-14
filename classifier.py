@@ -146,6 +146,32 @@ class EmailClassifierModel(object):
         return model
 
 
+    # This method takes data as an input and it serializes it and write it out to a json index file
+    # And returns the data as padded sequences
+    def set_word_index_from_data(self, data, serial_file=None, overwrite=True):
+
+        # If we haven't already loaded in a word index for our tokenizer
+        # We can create a word index by fitting the tokenizer onto the data provided
+        if ("word_index" not in dir(self.tokenizer)) or overwrite:
+
+            # Set the tokenizer's word index with the given data
+            self.tokenizer.fit_on_texts(data)
+
+            try:
+                # set the serial_file once since we will need to refer to it more than once
+                serial_file = self.index_file if serial_file is None else serial_file
+
+                # If overwrite was selected then we open in 'w' otherwise we open in 'x'
+                with open(serial_file, 'w' if overwrite else 'x') as outfile:
+                    json.dump(self.tokenizer.word_index, outfile, ensure_ascii=False)
+
+            except FileExistsError as fee:
+                print("File {} already exists, error: [{}]".format(serial_file, fee))
+
+        else:
+            print("we have an existing word index and overwrite is turned off")
+
+
     # train the model with specified data, or the default datafile if none is provided
     # Verbosity level 2: One line for each epoch
     # Verbosity level 1: Progress bar
@@ -162,20 +188,7 @@ class EmailClassifierModel(object):
         if data is None or labels is None:
             data, labels = sp.get_data_from_file(infile=self.data_file)
 
-        # If we haven't already loaded in a word index for our tokenizer
-        # We can create a word index by fitting the tokenizer onto the data provided
-        if "word_index" not in dir(self.tokenizer):
-            self.tokenizer.fit_on_texts(data)
-
-            # We should try to write the tokenizer word indices to json index file
-            try:
-                # we can open it in the mode corresponding to whether or not
-                # The user specified if we should overwrite existing data
-                with open(self.index_file, mode='{}'.format('w' if overwrite else 'x')) as outfile:
-                    json.dump(self.tokenizer.word_index, outfile, ensure_ascii=False)
-
-            except FileExistsError as fee:
-                print("File {} already exists, error: [{}]".format(self.index_file, fee))
+        self.set_word_index_from_data(data)
 
 
         # The data provided is turned from strings to arrays of integers which map the words within it to
@@ -214,19 +227,7 @@ class EmailClassifierModel(object):
         # These are the labels and the data
         data, labels = sp.get_data_from_file(infile = self.data_file if datafile is None else datafile)
 
-        # We assume that since this ia self class method, that we want to use any existing word index
-        # Otherwise if the word index is not in the tokenizer we can just fit it to the data
-        if "word_index" not in dir(self.tokenizer):
-            self.tokenizer.fit_on_texts(data)
-
-            # same thing as in train_model_with_data
-            try:
-                # write the dictionary to the index file and overwrite unless it was specified not to
-                with open(self.index_file, mode='w' if overwrite else 'x') as outfile:
-                    json.dump(self.tokenizer.word_index, outfile, ensure_ascii=False)
-
-            except FileExistsError as fee:
-                print("File {} already exists, error: [{}]".format(self.index_file, fee))
+        self.set_word_index_from_data(data)
 
         # The data provided is turned from strings to arrays of integers which map the words within it to
         # a word index so we can train the model to use text embeddings, this is what is passed
