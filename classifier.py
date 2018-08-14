@@ -8,8 +8,21 @@ from os import getcwd
 # a class to put the email classifier into so that it can run
 class EmailClassifierModel(object):
 
+
     def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3,
                  model=None, index_file=None, data_file=None, model_file=None, load_model=True):
+        """
+
+        :param int vocab_size: Maximum length of total vocabulary learned from data
+        :param int num_features: Number of Features word vectors will have
+        :param int input_length: Length of input for the actual model
+        :param float dropout_rate: Floating point number between 1 and 0 for the probability of dropping neural connections in Fully Connected layer
+        :param keras.Sequential model: Existing Model if one was created
+        :param str index_file: Filepath to the word index JSON file where word serializations will be saved/loaded from
+        :param str data_file: Filepath to the training data from where to load training sets from
+        :param str model_file: Filepath to where the model should be loaded from or saved to
+        :param bool load_model: Flag to indicate whether we should ignore a model file if it was already saved or if we load it
+        """
 
         # To set the model's hyper-parameters
         self.vocab_size = vocab_size
@@ -69,23 +82,17 @@ class EmailClassifierModel(object):
                 json.dump(self.tokenizer.word_index, fp=outfile, ensure_ascii=False)
         '''
 
-
+    ''' Utility Methods '''
 
     # Create a compiled keras model
     def create_model(self, vocab_size=None, num_features=None, input_length=None, dropout_rate=None):
 
-        if vocab_size is None:
-            vocab_size = self.vocab_size
-
-        if num_features is None:
-            num_features = self.num_features
-
-        if input_length is None:
-            input_length = self.input_length
-
-        if dropout_rate is None:
-            dropout_rate = self.dropout_rate
-
+        :param int vocab_size: Maximum number of words to be learned in embedding layer
+        :param int num_features: Dimensionality of embedded word vectors, I.E. the number of features they have
+        :param int input_length: Length of input text
+        :param float dropout_rate: Floating point number on [0, 1) that indicates the percentage of dropped neuron connections
+        :return model: Keras Sequential object
+        """
         model = keras.Sequential()
         # input is going to be
         model.add(keras.layers.Embedding(input_dim=vocab_size,  # for the vocabulary size
@@ -131,7 +138,13 @@ class EmailClassifierModel(object):
     # This method takes data as an input and it serializes it and write it out to a json index file
     # And returns the data as padded sequences
     def set_word_index_from_data(self, data, serial_file=None, overwrite=True):
+        """
 
+        :param array data: List of UTF-8 Strings Given as Training Data
+        :param str serial_file: Path to Word Index JSON file
+        :param bool overwrite: Flag that indicates whether or not the existing data should be overwritten
+        :return: Nothing
+        """
         # If we haven't already loaded in a word index for our tokenizer
         # We can create a word index by fitting the tokenizer onto the data provided
         if ("word_index" not in dir(self.tokenizer)) or overwrite:
@@ -156,14 +169,22 @@ class EmailClassifierModel(object):
         else:
             print("we have an existing word index and overwrite is turned off")
 
+    ''' Training routines '''
 
-    # train the model with specified data, or the default datafile if none is provided
-    # Verbosity level 2: One line for each epoch
-    # Verbosity level 1: Progress bar
-    # Verbosity level 0: Silent
+
     def train_model_with_data(self, data=None, labels=None, savefile=None, testing_data_split=0.1,
                               overwrite=True, epoch=100, batch=20, verbosity=2):
-
+        """
+        :param list data: Arrays of UTF-8 encoded sentences
+        :param list labels: Array of 1s and 0s corresponding to positive and negative data-pieces, respectively
+        :param string savefile: File Path to save the trained model
+        :param float testing_data_split: Float on domain [0, 1) of the percentage of data that should be alloted to testing
+        :param bool overwrite: Boolean flag to specify whether or not we should overwrite existing saved data
+        :param int epoch: Integer of epochs to run on the given data
+        :param int batch: Integer of how much data should we process at a time
+        :param int verbosity: Verbosity Level: 2 - Print each epoch, 1 - Progress bar, 0 - Silent
+        :return: Nothing
+        """
         # Take the modulus of verbosity by 3 since we don't have an enum object
         # that could easily define modes of verbosity for the method,
         # This way we can easily cap it off at 3 so the user doesn't break it
@@ -197,15 +218,22 @@ class EmailClassifierModel(object):
                         overwrite=overwrite)
 
 
-
-
-
     # to train the model with a different datafile
     # As in the train_model_with_data method, the arguments are virtually identical,
     # However instead of passing in data explicitly, we pass in a datafile path to get the data from
     def train_model_with_file(self, datafile=None, savefile=None, testing_split=0.1,
                               overwrite=True, epoch=100, batch=20, verbosity=2):
+        """
 
+        :param str datafile: Path to where the training data needs to be loaded from, overrides self.data_file
+        :param str savefile: Path to where the trained model will be saved to, overrides self.model_file
+        :param float testing_split: Floating point number between 0 and 1 that indicates what portion of the training data will be used for testing the model
+        :param bool overwrite: Flag to indicate whether or not we should overwrite existing files
+        :param int epoch: Number of times we should train over every sample in the dataset
+        :param int batch: Number of samples we should train with at each step
+        :param int verbosity: Level of output during training: 2 - Print each epoch, 1 - Progress Bar, 0 - Total Silence
+        :return: Nothing
+        """
         # Cap the verbosity level off at 2
         verbosity %= 3
 
