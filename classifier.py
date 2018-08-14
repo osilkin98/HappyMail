@@ -4,13 +4,6 @@ import json
 import os
 from os import getcwd
 
-vocab_size = 4000  # we'll define only 1000 unique words in our vocabulary; not a lot of words needed
-num_features = 40  # 40 features on each word vector, same amount of features as spotify's latent audio space
-input_length = 2000  # input length of 200 words
-
-'''
-
-'''
 
 # a class to put the email classifier into so that it can run
 class EmailClassifierModel(object):
