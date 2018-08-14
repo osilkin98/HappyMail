@@ -62,18 +62,7 @@ class EmailClassifierModel(object):
 
                     data, labels = sp.get_data_from_file(infile=self.data_file, shuffle=False)
 
-                    self.tokenizer.fit_on_texts(data)
-
-                    print("Since {} couldn't be read from correctly, we will try and overwrite it".format(
-                        self.index_file))
-
-                    try:
-                        with open(self.index_file, 'w') as outfile:
-                            json.dump(self.tokenizer.word_index, fp=outfile, ensure_ascii=False)
-
-                    # in case soemthing goes wrong again
-                    except PermissionError as pe:
-                        print(pe)
+                    self.set_word_index_from_data(data, overwrite=True)
 
         # If the index file doesn't exist, we should do nothing because it should learn the word indexes
         # Through the actual training process since the index file was not specified
