@@ -68,7 +68,9 @@ class EmailClassifierModel(object):
                 except PermissionError as pe:
                     print(pe)
 
-        # If the index file doesn't exist
+        # If the index file doesn't exist, we should do nothing because it should learn the word indexes
+        # Through the actual training process since the index file was not specified
+        '''
         else:
             data, labels = sp.get_data_from_file(infile=self.data_file, shuffle=False)
 
@@ -76,7 +78,7 @@ class EmailClassifierModel(object):
 
             with open(self.index_file, 'w') as outfile:
                 json.dump(self.tokenizer.word_index, fp=outfile, ensure_ascii=False)
-
+        '''
 
 
 
