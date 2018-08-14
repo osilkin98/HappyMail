@@ -52,21 +52,25 @@ class EmailClassifierModel(object):
 
             # if something went wrong we should try and just load the data
             except json.JSONDecodeError as de:
-                print(de)
 
-                data, labels = sp.get_data_from_file(infile=self.data_file, shuffle=False)
+                # If we have an existing data file, we should try to overwrite the word index file
+                if os.path.exists(self.data_file):
+                    print(de)
 
-                self.tokenizer.fit_on_texts(data)
+                    data, labels = sp.get_data_from_file(infile=self.data_file, shuffle=False)
 
-                print("Since {} couldn't be read from correctly, we will try and overwrite it".format(self.index_file))
+                    self.tokenizer.fit_on_texts(data)
 
-                try:
-                    with open(self.index_file, 'w') as outfile:
-                        json.dump(self.tokenizer.word_index, fp=outfile, ensure_ascii=False)
+                    print("Since {} couldn't be read from correctly, we will try and overwrite it".format(
+                        self.index_file))
 
-                # in case soemthing goes wrong again
-                except PermissionError as pe:
-                    print(pe)
+                    try:
+                        with open(self.index_file, 'w') as outfile:
+                            json.dump(self.tokenizer.word_index, fp=outfile, ensure_ascii=False)
+
+                    # in case soemthing goes wrong again
+                    except PermissionError as pe:
+                        print(pe)
 
         # If the index file doesn't exist, we should do nothing because it should learn the word indexes
         # Through the actual training process since the index file was not specified
