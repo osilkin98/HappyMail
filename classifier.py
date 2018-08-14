@@ -147,7 +147,16 @@ class EmailClassifierModel(object):
 
 
     # train the model with specified data, or the default datafile if none is provided
-    def train_model_with_data(self, data=None, labels=None, savefile=None, overwrite=True, epoch=100, batch=20):
+    # Verbosity level 2: One line for each epoch
+    # Verbosity level 1: Progress bar
+    # Verbosity level 0: Silent
+    def train_model_with_data(self, data=None, labels=None, savefile=None, testing_data_split=0.1,
+                              overwrite=True, epoch=100, batch=20, verbosity=2):
+
+        # Take the modulus of verbosity by 3 since we don't have an enum object
+        # that could easily define modes of verbosity for the method,
+        # This way we can easily cap it off at 3 so the user doesn't break it
+        verbosity %= 3
 
         # In the case no actual data was specified
         if data is None or labels is None:
@@ -155,7 +164,7 @@ class EmailClassifierModel(object):
 
         # If we haven't already loaded in a word index for our tokenizer
         # We can create a word index by fitting the tokenizer onto the data provided
-        if "word_index" not in dir(d.tokenizer):
+        if "word_index" not in dir(self.tokenizer):
             self.tokenizer.fit_on_texts(data)
 
             # We should try to write the tokenizer word indices to json index file
@@ -169,8 +178,27 @@ class EmailClassifierModel(object):
                 print("File {} already exists, error: [{}]".format(self.index_file, fee))
 
 
+        # The data provided is turned from strings to arrays of integers which map the words within it to
+        # a word index so we can train the model to use text embeddings, this is what is passed
+        # to the sequences= argument.
         processed_data = self.tokenizer.texts_to_sequences(data)
-        print(processed_data)
+
+        # The sequences are then zero-padded to the end if the actual sequence was
+        # shorter than the set input length. If it was longer, anything past the 2000th index is dropped
+        # The padding starts at the end of the actual sequence and goes until 2000, which is post-padding
+        processed_data = keras.preprocessing.sequence.pad_sequences(sequences=processed_data,
+                                                                    maxlen=self.input_length,
+                                                                    padding="post")
+
+        # This is the actual training step of the process
+        self.model.fit(x=processed_data, y=labels, batch_size=batch, verbose=verbosity,
+                       epochs=epoch, validation_split=testing_data_split)
+
+        # Save the model
+        self.model.save(filepath = self.model_file if savefile is None else savefile,
+                        overwrite=overwrite)
+
+
 
 
 
