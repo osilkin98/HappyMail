@@ -203,9 +203,49 @@ class EmailClassifierModel(object):
 
 
     # to train the model with a different datafile
-    def train_model_with_file(self, datafile=None, savefile=None, overwrite=True, epoch=100, batch=20):
-        print("placeholder")
+    # As in the train_model_with_data method, the arguments are virtually identical,
+    # However instead of passing in data explicitly, we pass in a datafile path to get the data from
+    def train_model_with_file(self, datafile=None, savefile=None, testing_split=0.1,
+                              overwrite=True, epoch=100, batch=20, verbosity=2):
 
+        # Cap the verbosity level off at 2
+        verbosity %= 3
+
+        # These are the labels and the data
+        data, labels = sp.get_data_from_file(infile = self.data_file if datafile is None else datafile)
+
+        # We assume that since this ia self class method, that we want to use any existing word index
+        # Otherwise if the word index is not in the tokenizer we can just fit it to the data
+        if "word_index" not in dir(self.tokenizer):
+            self.tokenizer.fit_on_texts(data)
+
+            # same thing as in train_model_with_data
+            try:
+                # write the dictionary to the index file and overwrite unless it was specified not to
+                with open(self.index_file, mode='w' if overwrite else 'x') as outfile:
+                    json.dump(self.tokenizer.word_index, outfile, ensure_ascii=False)
+
+            except FileExistsError as fee:
+                print("File {} already exists, error: [{}]".format(self.index_file, fee))
+
+        # The data provided is turned from strings to arrays of integers which map the words within it to
+        # a word index so we can train the model to use text embeddings, this is what is passed
+        # to the sequences= argument.
+        processed_data = self.tokenizer.texts_to_sequences(data)
+
+        # The sequences are then zero-padded to the end if the actual sequence was
+        # shorter than the set input length. If it was longer, anything past the 2000th index is dropped
+        # The padding starts at the end of the actual sequence and goes until 2000, which is post-padding
+        processed_data = keras.preprocessing.sequence.pad_sequences(sequences=processed_data,
+                                                                    maxlen=self.input_length,
+                                                                    padding="post")
+
+        # Train the model in the same way we did with the train_model_with_data method
+        self.model.fit(x=processed_data, y=labels, batch_size=batch, epochs=epoch,
+                       verbose=verbosity, validation_split=testing_split)
+
+        # Save the model
+        self.model.save(filepath=self.model_file if savefile is None else savefile, overwrite=overwrite)
 
 if __name__ == "__main__":
     d = EmailClassifierModel()
