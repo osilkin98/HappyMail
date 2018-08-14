@@ -1,4 +1,4 @@
-import keras as ks
+import keras
 import scraper as sp
 import json
 import os
@@ -28,7 +28,7 @@ class EmailClassifierModel(object):
         if load_model:
             # If the file already exists, we'll load the model, otherwise we'll just recreate it
             if os.path.exists(self.model_file):
-                self.model = ks.models.load_model(filepath=self.model_file)
+                self.model = keras.models.load_model(filepath=self.model_file)
             else:
                 self.model = self.create_model() if model is None else model
         # Just create a new compiled model if they don't want us to
@@ -40,7 +40,7 @@ class EmailClassifierModel(object):
 
 
         # Create the tokenizer
-        self.tokenizer = ks.preprocessing.text.Tokenizer(num_words=self.vocab_size)
+        self.tokenizer = keras.preprocessing.text.Tokenizer(num_words=self.vocab_size)
 
         self.index_file = "{}/word_indices.json".format(getcwd()) if index_file is None else index_file
 
@@ -101,25 +101,25 @@ class EmailClassifierModel(object):
         if dropout_rate is None:
             dropout_rate = self.dropout_rate
 
-        model = ks.Sequential()
+        model = keras.Sequential()
         # input is going to be
-        model.add(ks.layers.Embedding(input_dim=vocab_size,  # for the vocabulary size
+        model.add(keras.layers.Embedding(input_dim=vocab_size,  # for the vocabulary size
                                       output_dim=num_features,  # our output is going to be
                                       input_length=input_length))  # (features x input_length)
 
         # input: (input_length x features) == 200 x 40
-        model.add(ks.layers.Conv1D(filters=num_features,  # We use the same amount of filters as features
+        model.add(keras.layers.Conv1D(filters=num_features,  # We use the same amount of filters as features
                                    kernel_size=5,  # kernel_size = 5 for a window of +- 2 words away
                                    padding='same'))  # use 0-padding
 
         # input: (input_length x features) == 200 x 40
-        model.add(ks.layers.MaxPooling1D(pool_size=4))
+        model.add(keras.layers.MaxPooling1D(pool_size=4))
 
         # input: (input_length/4 x features) == 50 x 40
-        model.add(ks.layers.Conv1D(filters=num_features * 2, kernel_size=5, padding='same', activation='relu'))
+        model.add(keras.layers.Conv1D(filters=num_features * 2, kernel_size=5, padding='same', activation='relu'))
 
         # input: (input_length/4 x features*2) == 50 x 80
-        model.add(ks.layers.MaxPooling1D(pool_size=4))
+        model.add(keras.layers.MaxPooling1D(pool_size=4))
         # outputs: (input_length/8 x features*2) == 25 x 80
         #    |
         #    |
@@ -127,15 +127,15 @@ class EmailClassifierModel(object):
         # input
 
         # Flatten layer
-        model.add(ks.layers.Flatten())
+        model.add(keras.layers.Flatten())
 
         # Dropout layer to help in creating connections within the actual network
-        model.add(ks.layers.Dropout(rate=dropout_rate))
+        model.add(keras.layers.Dropout(rate=dropout_rate))
 
         # Dense fully connected layer with input: num_features*2 == 80
-        model.add(ks.layers.Dense(units=num_features * 2))
+        model.add(keras.layers.Dense(units=num_features * 2))
 
-        model.add(ks.layers.Dense(units=1, activation='sigmoid'))
+        model.add(keras.layers.Dense(units=1, activation='sigmoid'))
 
         # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
         model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
@@ -184,25 +184,25 @@ def get_model():
 
     dropout_rate = 0.3  # dropout rate of 30%
 
-    model = ks.Sequential()
+    model = keras.Sequential()
     # input is going to be
-    model.add(ks.layers.Embedding(input_dim=vocab_size,         # for the vocabulary size
+    model.add(keras.layers.Embedding(input_dim=vocab_size,         # for the vocabulary size
                                   output_dim=num_features,      # our output is going to be
                                   input_length=input_length))   # (features x input_length)
 
     # input: (input_length x features) == 200 x 40
-    model.add(ks.layers.Conv1D(filters=num_features,            # We use the same amount of filters as features
+    model.add(keras.layers.Conv1D(filters=num_features,            # We use the same amount of filters as features
                                kernel_size=5,                   # kernel_size = 5 for a window of +- 2 words away
                                padding='same'))                 # use 0-padding
 
     # input: (input_length x features) == 200 x 40
-    model.add(ks.layers.MaxPooling1D(pool_size=4))
+    model.add(keras.layers.MaxPooling1D(pool_size=4))
 
     # input: (input_length/4 x features) == 50 x 40
-    model.add(ks.layers.Conv1D(filters=num_features*2, kernel_size=5, padding='same', activation='relu'))
+    model.add(keras.layers.Conv1D(filters=num_features*2, kernel_size=5, padding='same', activation='relu'))
 
     # input: (input_length/4 x features*2) == 50 x 80
-    model.add(ks.layers.MaxPooling1D(pool_size=4))
+    model.add(keras.layers.MaxPooling1D(pool_size=4))
     # outputs: (input_length/8 x features*2) == 25 x 80
     #    |
     #    |
@@ -210,15 +210,15 @@ def get_model():
     # input
 
     # Flatten layer
-    model.add(ks.layers.Flatten())
+    model.add(keras.layers.Flatten())
 
     # Dropout layer to help in creating connections within the actual network
-    model.add(ks.layers.Dropout(rate=dropout_rate))
+    model.add(keras.layers.Dropout(rate=dropout_rate))
 
     # Dense fully connected layer with input: num_features*2 == 80
-    model.add(ks.layers.Dense(units=num_features*2))
+    model.add(keras.layers.Dense(units=num_features*2))
 
-    model.add(ks.layers.Dense(units=1, activation='sigmoid'))
+    model.add(keras.layers.Dense(units=1, activation='sigmoid'))
 
     # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
@@ -233,7 +233,7 @@ def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100, 
         data, labels = sp.get_data_from_file(create_if_not_found=False)
 
     # Initialize the tokenizer object with num_words = vocab_size
-    tokenizer = ks.preprocessing.text.Tokenizer(num_words=vocab_size)
+    tokenizer = keras.preprocessing.text.Tokenizer(num_words=vocab_size)
 
     # Tokenize the text that we actually have so the words map to integers
     tokenizer.fit_on_texts(data)
@@ -251,7 +251,7 @@ def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100, 
 
     # Input length will be 2000 because the average character length is ~1100 for emails with
     # A standard deviation of std = +/- 900 char with as a left-skewed distribution
-    X_training = ks.preprocessing.sequence.pad_sequences(X_training, maxlen=input_length, padding="post")
+    X_training = keras.preprocessing.sequence.pad_sequences(X_training, maxlen=input_length, padding="post")
 
     # print(X_training)
 
@@ -271,7 +271,7 @@ def serialize_text(text, filepath="word_indices.json"):
         vocab = json.load(infile)
 
     # Create a tokenizer object
-    tokenizer = ks.preprocessing.text.Tokenizer(num_words=vocab_size)
+    tokenizer = keras.preprocessing.text.Tokenizer(num_words=vocab_size)
 
     tokenizer.word_index = vocab
 
@@ -289,21 +289,21 @@ def predict(text, filepath="{}/models/model.h5".format(getcwd()), model=None):
 seq = "Dear , Thank you for your application and interest in joining our team; we truly appreciate the time you took to apply. Upon review we found your skills and qualifications to be notable however, at this time, we have identified other candidates whose experience more closely fit the unique specifications of this current opening.While we can no longer consider you for this specific role, we are constantly seeking to strengthen our team with people who can empower the growing Virgin Pulse team to be better and stronger and we hope you will consider applying for other positions which better match your qualifications in the future. If you have applied for other positions, we will continue to review your qualifications and will keep you informed about your status for those opportunities.  Again, we appreciate the time you have taken to apply and wish you the best.Be Well,The Virgin Pulse Recruiting TeamYou can change your email preferences at:https://app.jobvite.com/l?ksJuXChwy"
 
 if __name__ == '__main__':
-    '''
-    '''data, label = sp.get_data_from_file(create_if_not_found=False)
+'''
+'''data, label = sp.get_data_from_file(create_if_not_found=False)
     for d in data:
         print(d)
     train_model_with_data(data, label)
     ''''''
 
     print("Loading model")
-    model = ks.models.load_model(filepath="{}/models/model.h5".format(getcwd()))
+    model = keras.models.load_model(filepath="{}/models/model.h5".format(getcwd()))
 
     serialized_text = serialize_text(seq)
 
     print(serialized_text)
 
-    padded_texts = ks.preprocessing.sequence.pad_sequences(serialized_text, maxlen=input_length, padding="post")
+    padded_texts = keras.preprocessing.sequence.pad_sequences(serialized_text, maxlen=input_length, padding="post")
 
     print(padded_texts)
 
