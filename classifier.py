@@ -8,11 +8,9 @@ from os import getcwd
 # a class to put the email classifier into so that it can run
 class EmailClassifierModel(object):
 
-
     def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3,
                  model=None, index_file=None, data_file=None, model_file=None, load_model=True):
         """
-
         :param int vocab_size: Maximum length of total vocabulary learned from data
         :param int num_features: Number of Features word vectors will have
         :param int input_length: Length of input for the actual model
@@ -31,7 +29,7 @@ class EmailClassifierModel(object):
         self.dropout_rate = dropout_rate
 
         # Set the actual model file
-        self.model_file = "{}/models/model.h5" if model_file is None else model_file
+        self.model_file = "{}/models/model.h5".format(getcwd()) if model_file is None else model_file
 
         # Load the model if the user wants to
         if load_model:
@@ -271,7 +269,7 @@ class EmailClassifierModel(object):
 if __name__ == "__main__":
     d = EmailClassifierModel()
 
-    d.train_model_with_data()
+    # d.model.summary()
 
     # print("word_index" in dir(d.tokenizer))
 
