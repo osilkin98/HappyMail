@@ -1,5 +1,5 @@
 import keras
-import scraper as sp
+import scraper
 import json
 import os
 from os import getcwd
@@ -70,7 +70,7 @@ class EmailClassifierModel(object):
                 if os.path.exists(self.data_file):
                     print(de)
 
-                    data, labels = sp.get_data_from_file(infile=self.data_file, shuffle=False)
+                    data, labels = scraper.get_data_from_file(infile=self.data_file, shuffle=False)
 
                     self.set_word_index_from_data(data, overwrite=True)
 
@@ -78,7 +78,7 @@ class EmailClassifierModel(object):
         # Through the actual training process since the index file was not specified
         '''
         else:
-            data, labels = sp.get_data_from_file(infile=self.data_file, shuffle=False)
+            data, labels = scraper.get_data_from_file(infile=self.data_file, shuffle=False)
 
             self.tokenizer.fit_on_texts(data)
 
@@ -197,7 +197,7 @@ class EmailClassifierModel(object):
 
         # In the case no actual data was specified
         if data is None or labels is None:
-            data, labels = sp.get_data_from_file(infile=self.data_file)
+            data, labels = scraper.get_data_from_file(infile=self.data_file)
 
         self.set_word_index_from_data(data)
 
@@ -243,7 +243,7 @@ class EmailClassifierModel(object):
         verbosity %= 3
 
         # These are the labels and the data
-        data, labels = sp.get_data_from_file(infile = self.data_file if datafile is None else datafile)
+        data, labels = scraper.get_data_from_file(infile = self.data_file if datafile is None else datafile)
 
         self.set_word_index_from_data(data)
 
@@ -357,7 +357,7 @@ def get_model():
 def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100, batch=20):
 
     if data is None:
-        data, labels = sp.get_data_from_file(create_if_not_found=False)
+        data, labels = scraper.get_data_from_file(create_if_not_found=False)
 
     # Initialize the tokenizer object with num_words = vocab_size
     tokenizer = keras.preprocessing.text.Tokenizer(num_words=vocab_size)
@@ -417,7 +417,7 @@ seq = "Dear , Thank you for your application and interest in joining our team; w
 
 if __name__ == '__main__':
 '''
-'''data, label = sp.get_data_from_file(create_if_not_found=False)
+'''data, label = scraper.get_data_from_file(create_if_not_found=False)
     for d in data:
         print(d)
     train_model_with_data(data, label)
