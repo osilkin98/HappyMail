@@ -266,6 +266,35 @@ class EmailClassifierModel(object):
         # Save the model
         self.model.save(filepath=self.model_file if savefile is None else savefile, overwrite=overwrite)
 
+    def predict(self, text: str):
+        """
+
+        :param str text: Text to use as input for the prediction
+        :return: Returns a computed value between 0 and 1, 1 being positive and 0 being negative.
+        """
+
+        # if we don't have any word serialization
+        if "word_index" not in dir(self.tokenizer):
+            try:
+                with open(self.index_file, mode='r') as infile:
+                    self.tokenizer.word_index = json.load(infile)
+            except IOError as e:
+                print("IOError encountered while opening {}: {}".format(self.index_file, e))
+                return -1
+
+        # otherwise we should be fine to go
+
+        # We enclose the text given as a single element within an array
+        to_process = self.tokenizer.texts_to_sequences([text])
+
+        # We then pad the sequence to the end with 0s if text < 2000 and cut it off at 2000 if text > 2000
+        to_process = keras.preprocessing.sequence.pad_sequences(to_process,
+                                                                maxlen=self.input_length,
+                                                                padding='post')
+
+        return self.model.predict(to_process[0][0])
+
+
 if __name__ == "__main__":
     d = EmailClassifierModel()
 
