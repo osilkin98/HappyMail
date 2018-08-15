@@ -155,7 +155,8 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                         if 'data' not in part['body']:
                             continue
 
-                        soup = bs.BeautifulSoup(base64.urlsafe_b64decode(part['body']['data']).decode("utf-8"))
+                        soup = bs.BeautifulSoup(base64.urlsafe_b64decode(part['body']['data']).decode("utf-8"),
+                                                "html.parser")
 
                         for script in soup(['script', 'style']):
                             script.decompose()
@@ -179,7 +180,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                 else:
 
                     soup = bs.BeautifulSoup(base64.urlsafe_b64decode(
-                        message_full['payload']['body']['data']).decode("utf-8"))
+                        message_full['payload']['body']['data']).decode("utf-8"), "html.parser")
 
                     for script in soup(['script', 'style']):
                         script.decompose()
