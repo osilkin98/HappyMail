@@ -182,7 +182,7 @@ class EmailClassifierModel(object):
         """
         :param list data: Arrays of UTF-8 encoded sentences
         :param list labels: Array of 1s and 0s corresponding to positive and negative data-pieces, respectively
-        :param string savefile: File Path to save the trained model
+        :param string savefile: File Path to save the trained model, overrides self.model_file
         :param float testing_data_split: Float on domain [0, 1) of the percentage of data that should be alloted to testing
         :param bool overwrite: Boolean flag to specify whether or not we should overwrite existing saved data
         :param int epoch: Integer of epochs to run on the given data
