@@ -10,7 +10,7 @@ from tensorflow.python.framework.errors_impl import InternalError as TFInternalE
 class EmailClassifierModel(object):
 
     def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3,
-                 model=None, index_file=None, data_file=None, model_file=None, load_model=True):
+                 model=None, index_file=None, data_file=None, model_file=None, auto_train=True, load_model=True):
         """
         :param int vocab_size: Maximum length of total vocabulary learned from data
         :param int num_features: Number of Features word vectors will have
@@ -20,6 +20,7 @@ class EmailClassifierModel(object):
         :param str index_file: Filepath to the word index JSON file where word serializations will be saved/loaded from
         :param str data_file: Filepath to the training data from where to load training sets from
         :param str model_file: Filepath to where the model should be loaded from or saved to
+        :param bool auto_train: Flag to indicate whether or not the model should be retrained if we couldn't load it
         :param bool load_model: Flag to indicate whether we should ignore a model file if it was already saved or if we load it
         """
 
@@ -31,6 +32,8 @@ class EmailClassifierModel(object):
 
         # Set the actual model file
         self.model_file = "{}/models/model.h5".format(getcwd()) if model_file is None else model_file
+
+        self.trained = False
 
         # Load the model if the user wants to
         if load_model:
@@ -61,7 +64,6 @@ class EmailClassifierModel(object):
         # set the data file
         self.data_file = "{}/training_data.txt".format(getcwd()) if data_file is None else data_file
 
-
         # Create the tokenizer
         self.tokenizer = keras.preprocessing.text.Tokenizer(num_words=self.vocab_size)
 
@@ -83,6 +85,9 @@ class EmailClassifierModel(object):
                     data, labels = scraper.get_data_from_file(infile=self.data_file, shuffle=False)
 
                     self.set_word_index_from_data(data, overwrite=True)
+
+        if not self.trained and auto_train:
+            self.train_model_with_data()
 
         # If the index file doesn't exist, we should do nothing because it should learn the word indexes
         # Through the actual training process since the index file was not specified
@@ -111,9 +116,12 @@ class EmailClassifierModel(object):
         model = keras.Sequential()
         # input is going to be
         model.add(keras.layers.Embedding(input_dim=vocab_size,  # for the vocabulary size
-                                      output_dim=num_features,  # our output is going to be
-                                      input_length=input_length))  # (features x input_length)
+                                         output_dim=num_features,  # our output is going to be
+                                         input_length=input_length,
+                                         mask_zero=True))  # (features x input_length)
 
+        model.add(keras.layers.CuDNNLSTM(num_features))
+        '''
         # input: (input_length x features) == 200 x 40
         model.add(keras.layers.Conv1D(filters=num_features,  # We use the same amount of filters as features
                                    kernel_size=5,  # kernel_size = 5 for a window of +- 2 words away
@@ -135,20 +143,20 @@ class EmailClassifierModel(object):
 
         # Flatten layer
         model.add(keras.layers.Flatten())
+        '''
 
         # Dropout layer to help in creating connections within the actual network
-        model.add(keras.layers.Dropout(rate=dropout_rate))
+        # model.add(keras.layers.Dropout(rate=dropout_rate))
 
         # Dense fully connected layer with input: num_features*2 == 80
-        model.add(keras.layers.Dense(units=num_features * 2))
+        # model.add(keras.layers.Dense(units=num_features * 2))
 
         model.add(keras.layers.Dense(units=1, activation='sigmoid'))
 
         # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
+        model.compile(optimizer=keras.optimizers.rmsprop, loss='binary_crossentropy', metrics=['acc'])
 
         return model
-
 
     # This method takes data as an input and it serializes it and write it out to a json index file
     # And returns the data as padded sequences
@@ -186,9 +194,8 @@ class EmailClassifierModel(object):
 
     ''' Training routines '''
 
-
     def train_model_with_data(self, data=None, labels=None, savefile=None, testing_data_split=0.1,
-                              overwrite=True, epoch=100, batch=20, verbosity=2):
+                              overwrite=True, epoch=50, batch=64, verbosity=2):
         """
         :param list data: Arrays of UTF-8 encoded sentences
         :param list labels: Array of 1s and 0s corresponding to positive and negative data-pieces, respectively
@@ -223,15 +230,18 @@ class EmailClassifierModel(object):
         processed_data = keras.preprocessing.sequence.pad_sequences(sequences=processed_data,
                                                                     maxlen=self.input_length,
                                                                     padding="post")
+        print("Fitting the model...")
 
         # This is the actual training step of the process
         self.model.fit(x=processed_data, y=labels, batch_size=batch, verbose=verbosity,
                        epochs=epoch, validation_split=testing_data_split)
 
+        self.model.evaluate(x=processed_data, y=labels)
+        print("Done")
+
         # Save the model
         self.model.save(filepath = self.model_file if savefile is None else savefile,
                         overwrite=overwrite)
-
 
     # to train the model with a different datafile
     # As in the train_model_with_data method, the arguments are virtually identical,
@@ -302,11 +312,53 @@ class EmailClassifierModel(object):
                                                                 maxlen=self.input_length,
                                                                 padding='post')
 
-        return self.model.predict(to_process[0][0])
+        return self.model.predict(to_process)[0][0]
+
+
+
+
+def test_class(ModelObject):
+
+    while True:
+        to_input = input("Enter an email snippet [max 200 chars]: ")
+
+        pred = ModelObject.predict(to_input)
+
+        print(pred)
 
 
 if __name__ == "__main__":
+    # d = EmailClassifierModel(input_length=200, model_file="models/lower_input.h5")
+    '''
+    data, labels = scraper.get_data_from_file(numeric_labels=False)
 
-    # d.model.summary()
+    for i in range(len(data)):
+        print("{{\n\t\"data\": \"{}\"\n\t\"label\": \"{}\"\n}}".format(data[i], labels[i]))
+
+    '''
+    d = EmailClassifierModel(input_length=1000, vocab_size=5000, model_file="models/lstm_network.h5")
+
+    d.train_model_with_data(epoch=50)
+
+    d.model.summary()
+    '''
+    
+    try:
+        while True:
+            to_input = input("Enter an email snippet [max 200 chars]: ")
+
+            pred = d.predict(to_input)
+
+            print(pred)
+
+    except KeyboardInterrupt as interrupt:
+        print(interrupt)
+
+    except EOFError as interrupt:
+        print(interrupt)
+    '''
+    # pred = d.predict(to_input)
+
+    # print(pred)
 
     # print("word_index" in dir(d.tokenizer))
