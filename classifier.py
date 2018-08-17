@@ -3,6 +3,7 @@ import scraper
 import json
 import os
 from os import getcwd
+from tensorflow.python.framework.errors_impl import InternalError as TFInternalError
 
 
 # a class to put the email classifier into so that it can run
@@ -35,7 +36,16 @@ class EmailClassifierModel(object):
         if load_model:
             # If the file already exists, we'll load the model, otherwise we'll just recreate it
             if os.path.exists(self.model_file):
-                self.model = keras.models.load_model(filepath=self.model_file)
+                try:
+                    self.model = keras.models.load_model(filepath=self.model_file)
+                    # Assuming we load the model correctly, it will be trained
+                    self.trained = True
+                    print("Loaded model")
+
+                except TFInternalError as tfe:
+                    print("Encountered {}, creating new model from scratch.".format(tfe))
+                    self.model = self.create_model(self.vocab_size, self.num_features,
+                                                   self.input_length, self.dropout_rate)
             else:
                 self.model = self.create_model(vocab_size=self.vocab_size,
                                                num_features=self.num_features,
