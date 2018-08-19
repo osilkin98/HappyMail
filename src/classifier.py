@@ -1,6 +1,7 @@
 import keras
 from src import scraper
 import json
+import numpy as np
 import os
 from os import getcwd
 from tensorflow.python.framework.errors_impl import InternalError as TFInternalError
@@ -136,7 +137,7 @@ class EmailClassifierModel(object):
                                          input_length=input_length,
                                          mask_zero=True))  # (features x input_length)
 
-        model.add(keras.layers.LSTM(num_features))
+        model.add(keras.layers.LSTM(num_features,dropout=dropout_rate ))
         '''
         # input: (input_length x features) == 200 x 40
         model.add(keras.layers.Conv1D(filters=num_features,  # We use the same amount of filters as features
@@ -171,7 +172,7 @@ class EmailClassifierModel(object):
 
         # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
         model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
-
+        print("Creating new model")
         return model
 
     # This method takes data as an input and it serializes it and write it out to a json index file
@@ -210,8 +211,8 @@ class EmailClassifierModel(object):
 
     ''' Training routines '''
 
-    def train_model_with_data(self, data=None, labels=None, savefile=None, testing_data_split=0.1, log_dir=None,
-                              overwrite=True, epoch=50, batch=64, verbosity=2):
+    def train_model_with_data(self, data=None, labels=None, savefile=None, load=True, testing_data_split=0.1,
+                              log_dir=None, overwrite=True, epoch=50, batch=64, verbosity=2):
         """
         :param list data: Arrays of UTF-8 encoded sentences
         :param list labels: Array of 1s and 0s corresponding to positive and negative data-pieces, respectively
@@ -244,6 +245,8 @@ class EmailClassifierModel(object):
         # The sequences are then zero-padded to the end if the actual sequence was
         # shorter than the set input length. If it was longer, anything past the 2000th index is dropped
         # The padding starts at the end of the actual sequence and goes until 2000, which is post-padding
+        ''' Since we will try and use CuDDNLSTM, we will try and do away with the padding & zero-masking'''
+
         processed_data = keras.preprocessing.sequence.pad_sequences(sequences=processed_data,
                                                                     maxlen=self.input_length,
                                                                     padding="post")
@@ -251,8 +254,13 @@ class EmailClassifierModel(object):
         log_dir = self.logging_dir if log_dir is None else \
             "{}/{}".format(getcwd(), log_dir) if log_dir[0] != '/' else log_dir
 
+        # Try and load
+
+
+        self.model.summary()
 
         print("Fitting the model...")
+        print(processed_data)
         # This is the actual training step of the process
         self.model.fit(x=processed_data, y=labels, batch_size=batch, verbose=verbosity,
                        epochs=epoch, validation_split=testing_data_split,
@@ -361,9 +369,9 @@ if __name__ == "__main__":
         print("{{\n\t\"data\": \"{}\"\n\t\"label\": \"{}\"\n}}".format(data[i], labels[i]))
 
     '''
-    d = EmailClassifierModel(input_length=1000, vocab_size=5000, model_file="models/lstm_network.h5")
+    d = EmailClassifierModel(input_length=1000, vocab_size=5000, logging_dir="logs/")
 
-    d.train_model_with_data(epoch=50)
+    d.train_model_with_data(epoch=50, savefile='models/test.h5')
 
     d.model.summary()
     '''
