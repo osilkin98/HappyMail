@@ -10,14 +10,15 @@ from tensorflow.python.framework.errors_impl import InternalError as TFInternalE
 # a class to put the email classifier into so that it can run
 class EmailClassifierModel(object):
 
-    def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3, model_dir=None,
-                 logging_dir=None, logging_file=None, model=None, index_file=None, data_file=None, model_file=None,
+    def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3, epochs=100,
+                 model_dir=None, logging_dir=None, model=None, index_file=None, data_file=None, model_file=None,
                  auto_train=True, load_model=True):
         """
         :param int vocab_size: Maximum length of total vocabulary learned from data
         :param int num_features: Number of Features word vectors will have
         :param int input_length: Length of input for the actual model
         :param float dropout_rate: Floating point number between 1 and 0 for the probability of dropping neural connections in Fully Connected layer
+        :param int epoch: Number of times to run the model through the entire training set
         :param str model_dir: Directory to where the model file should be saved, uses ./models if None is specified
         :param str logging_dir: Directory to where the TensorFlow logging files will be saved, uses ./models/logs if None is specified
         :param keras.Sequential model: Existing Model if one was created
@@ -48,6 +49,7 @@ class EmailClassifierModel(object):
 
         # If the model path doesn't exist and we weren't passed an absolute path then we create the directories
         if self.model_file[-1] != '/' and not os.path.exists(self.model_dir):
+            print("making directories: {}".format(self.model_dir))
             os.makedirs(self.model_dir)
 
         self.trained = False
@@ -67,6 +69,7 @@ class EmailClassifierModel(object):
                     self.model = self.create_model(self.vocab_size, self.num_features,
                                                    self.input_length, self.dropout_rate)
             else:
+                print("Creating a model here")
                 self.model = self.create_model(vocab_size=self.vocab_size,
                                                num_features=self.num_features,
                                                input_length=self.input_length,
@@ -135,9 +138,9 @@ class EmailClassifierModel(object):
         model.add(keras.layers.Embedding(input_dim=vocab_size,  # for the vocabulary size
                                          output_dim=num_features,  # our output is going to be
                                          input_length=input_length,
-                                         mask_zero=True))  # (features x input_length)
+                                         ))  # (features x input_length)
 
-        model.add(keras.layers.LSTM(num_features,dropout=dropout_rate ))
+        model.add(keras.layers.CuDNNLSTM(num_features, unit_forget_bias=True))
         '''
         # input: (input_length x features) == 200 x 40
         model.add(keras.layers.Conv1D(filters=num_features,  # We use the same amount of filters as features
@@ -172,7 +175,7 @@ class EmailClassifierModel(object):
 
         # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
         model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
-        print("Creating new model")
+
         return model
 
     # This method takes data as an input and it serializes it and write it out to a json index file
@@ -284,8 +287,9 @@ class EmailClassifierModel(object):
 
 
         # Save the model
-        if not os.path.exists(self.model_dir):
-            os.makedirs(self.model_dir)
+        if not os.path.exists(self.model_dir) and savefile is None:
+            os.mkdir(self.model_dir)
+
 
         self.model.save(filepath = self.model_file if savefile is None else savefile,
                         overwrite=overwrite)
@@ -375,36 +379,11 @@ def test_class(ModelObject):
 
 if __name__ == "__main__":
     # d = EmailClassifierModel(input_length=200, model_file="models/lower_input.h5")
-    '''
-    data, labels = scraper.get_data_from_file(numeric_labels=False)
 
-    for i in range(len(data)):
-        print("{{\n\t\"data\": \"{}\"\n\t\"label\": \"{}\"\n}}".format(data[i], labels[i]))
+    d = EmailClassifierModel(input_length=200, vocab_size=5000, logging_dir="gpu_logs", model_dir='gpu_models')
 
-    '''
-    d = EmailClassifierModel(input_length=1000, vocab_size=5000, logging_dir="logs/")
+    print(d.__dict__)
 
-    d.train_model_with_data(epoch=50, savefile='models/test.h5')
+    # d.train_model_with_data(epoch=400)
 
     d.model.summary()
-    '''
-    
-    try:
-        while True:
-            to_input = input("Enter an email snippet [max 200 chars]: ")
-
-            pred = d.predict(to_input)
-
-            print(pred)
-
-    except KeyboardInterrupt as interrupt:
-        print(interrupt)
-
-    except EOFError as interrupt:
-        print(interrupt)
-    '''
-    # pred = d.predict(to_input)
-
-    # print(pred)
-
-    # print("word_index" in dir(d.tokenizer))
