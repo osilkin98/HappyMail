@@ -5,5 +5,5 @@ setup(
     version='0.1',
     packages=['HappyMail',],
     license='MIT License',
-    
+    long_description=open('README.md', mode='r').read(),
 )
