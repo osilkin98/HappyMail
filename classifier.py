@@ -3,13 +3,14 @@ import scraper
 import json
 import os
 from os import getcwd
+from tensorflow.python.framework.errors_impl import InternalError as TFInternalError
 
 
 # a class to put the email classifier into so that it can run
 class EmailClassifierModel(object):
 
     def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3,
-                 model=None, index_file=None, data_file=None, model_file=None, load_model=True):
+                 model=None, index_file=None, data_file=None, model_file=None, auto_train=True, load_model=True):
         """
         :param int vocab_size: Maximum length of total vocabulary learned from data
         :param int num_features: Number of Features word vectors will have
@@ -19,6 +20,7 @@ class EmailClassifierModel(object):
         :param str index_file: Filepath to the word index JSON file where word serializations will be saved/loaded from
         :param str data_file: Filepath to the training data from where to load training sets from
         :param str model_file: Filepath to where the model should be loaded from or saved to
+        :param bool auto_train: Flag to indicate whether or not the model should be retrained if we couldn't load it
         :param bool load_model: Flag to indicate whether we should ignore a model file if it was already saved or if we load it
         """
 
@@ -31,11 +33,22 @@ class EmailClassifierModel(object):
         # Set the actual model file
         self.model_file = "{}/models/model.h5".format(getcwd()) if model_file is None else model_file
 
+        self.trained = False
+
         # Load the model if the user wants to
         if load_model:
             # If the file already exists, we'll load the model, otherwise we'll just recreate it
             if os.path.exists(self.model_file):
-                self.model = keras.models.load_model(filepath=self.model_file)
+                try:
+                    self.model = keras.models.load_model(filepath=self.model_file)
+                    # Assuming we load the model correctly, it will be trained
+                    self.trained = True
+                    print("Loaded model")
+
+                except TFInternalError as tfe:
+                    print("Encountered {}, creating new model from scratch.".format(tfe))
+                    self.model = self.create_model(self.vocab_size, self.num_features,
+                                                   self.input_length, self.dropout_rate)
             else:
                 self.model = self.create_model(vocab_size=self.vocab_size,
                                                num_features=self.num_features,
@@ -50,7 +63,6 @@ class EmailClassifierModel(object):
 
         # set the data file
         self.data_file = "{}/training_data.txt".format(getcwd()) if data_file is None else data_file
-
 
         # Create the tokenizer
         self.tokenizer = keras.preprocessing.text.Tokenizer(num_words=self.vocab_size)
@@ -73,6 +85,9 @@ class EmailClassifierModel(object):
                     data, labels = scraper.get_data_from_file(infile=self.data_file, shuffle=False)
 
                     self.set_word_index_from_data(data, overwrite=True)
+
+        if not self.trained and auto_train:
+            self.train_model_with_data()
 
         # If the index file doesn't exist, we should do nothing because it should learn the word indexes
         # Through the actual training process since the index file was not specified
@@ -101,9 +116,12 @@ class EmailClassifierModel(object):
         model = keras.Sequential()
         # input is going to be
         model.add(keras.layers.Embedding(input_dim=vocab_size,  # for the vocabulary size
-                                      output_dim=num_features,  # our output is going to be
-                                      input_length=input_length))  # (features x input_length)
+                                         output_dim=num_features,  # our output is going to be
+                                         input_length=input_length,
+                                         mask_zero=True))  # (features x input_length)
 
+        model.add(keras.layers.CuDNNLSTM(num_features))
+        '''
         # input: (input_length x features) == 200 x 40
         model.add(keras.layers.Conv1D(filters=num_features,  # We use the same amount of filters as features
                                    kernel_size=5,  # kernel_size = 5 for a window of +- 2 words away
@@ -125,20 +143,20 @@ class EmailClassifierModel(object):
 
         # Flatten layer
         model.add(keras.layers.Flatten())
+        '''
 
         # Dropout layer to help in creating connections within the actual network
-        model.add(keras.layers.Dropout(rate=dropout_rate))
+        # model.add(keras.layers.Dropout(rate=dropout_rate))
 
         # Dense fully connected layer with input: num_features*2 == 80
-        model.add(keras.layers.Dense(units=num_features * 2))
+        # model.add(keras.layers.Dense(units=num_features * 2))
 
         model.add(keras.layers.Dense(units=1, activation='sigmoid'))
 
         # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
-        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
+        model.compile(optimizer=keras.optimizers.rmsprop, loss='binary_crossentropy', metrics=['acc'])
 
         return model
-
 
     # This method takes data as an input and it serializes it and write it out to a json index file
     # And returns the data as padded sequences
@@ -176,13 +194,12 @@ class EmailClassifierModel(object):
 
     ''' Training routines '''
 
-
     def train_model_with_data(self, data=None, labels=None, savefile=None, testing_data_split=0.1,
-                              overwrite=True, epoch=100, batch=20, verbosity=2):
+                              overwrite=True, epoch=50, batch=64, verbosity=2):
         """
         :param list data: Arrays of UTF-8 encoded sentences
         :param list labels: Array of 1s and 0s corresponding to positive and negative data-pieces, respectively
-        :param string savefile: File Path to save the trained model
+        :param string savefile: File Path to save the trained model, overrides self.model_file
         :param float testing_data_split: Float on domain [0, 1) of the percentage of data that should be alloted to testing
         :param bool overwrite: Boolean flag to specify whether or not we should overwrite existing saved data
         :param int epoch: Integer of epochs to run on the given data
@@ -213,15 +230,18 @@ class EmailClassifierModel(object):
         processed_data = keras.preprocessing.sequence.pad_sequences(sequences=processed_data,
                                                                     maxlen=self.input_length,
                                                                     padding="post")
+        print("Fitting the model...")
 
         # This is the actual training step of the process
         self.model.fit(x=processed_data, y=labels, batch_size=batch, verbose=verbosity,
                        epochs=epoch, validation_split=testing_data_split)
 
+        self.model.evaluate(x=processed_data, y=labels)
+        print("Done")
+
         # Save the model
         self.model.save(filepath = self.model_file if savefile is None else savefile,
                         overwrite=overwrite)
-
 
     # to train the model with a different datafile
     # As in the train_model_with_data method, the arguments are virtually identical,
@@ -292,152 +312,53 @@ class EmailClassifierModel(object):
                                                                 maxlen=self.input_length,
                                                                 padding='post')
 
-        return self.model.predict(to_process[0][0])
+        return self.model.predict(to_process)[0][0]
+
+
+
+
+def test_class(ModelObject):
+
+    while True:
+        to_input = input("Enter an email snippet [max 200 chars]: ")
+
+        pred = ModelObject.predict(to_input)
+
+        print(pred)
 
 
 if __name__ == "__main__":
-    d = EmailClassifierModel()
+    # d = EmailClassifierModel(input_length=200, model_file="models/lower_input.h5")
+    '''
+    data, labels = scraper.get_data_from_file(numeric_labels=False)
 
-    # d.model.summary()
+    for i in range(len(data)):
+        print("{{\n\t\"data\": \"{}\"\n\t\"label\": \"{}\"\n}}".format(data[i], labels[i]))
+
+    '''
+    d = EmailClassifierModel(input_length=1000, vocab_size=5000, model_file="models/lstm_network.h5")
+
+    d.train_model_with_data(epoch=50)
+
+    d.model.summary()
+    '''
+    
+    try:
+        while True:
+            to_input = input("Enter an email snippet [max 200 chars]: ")
+
+            pred = d.predict(to_input)
+
+            print(pred)
+
+    except KeyboardInterrupt as interrupt:
+        print(interrupt)
+
+    except EOFError as interrupt:
+        print(interrupt)
+    '''
+    # pred = d.predict(to_input)
+
+    # print(pred)
 
     # print("word_index" in dir(d.tokenizer))
-
-
-
-'''
-
-
-def get_model():
-
-    dropout_rate = 0.3  # dropout rate of 30%
-
-    model = keras.Sequential()
-    # input is going to be
-    model.add(keras.layers.Embedding(input_dim=vocab_size,         # for the vocabulary size
-                                  output_dim=num_features,      # our output is going to be
-                                  input_length=input_length))   # (features x input_length)
-
-    # input: (input_length x features) == 200 x 40
-    model.add(keras.layers.Conv1D(filters=num_features,            # We use the same amount of filters as features
-                               kernel_size=5,                   # kernel_size = 5 for a window of +- 2 words away
-                               padding='same'))                 # use 0-padding
-
-    # input: (input_length x features) == 200 x 40
-    model.add(keras.layers.MaxPooling1D(pool_size=4))
-
-    # input: (input_length/4 x features) == 50 x 40
-    model.add(keras.layers.Conv1D(filters=num_features*2, kernel_size=5, padding='same', activation='relu'))
-
-    # input: (input_length/4 x features*2) == 50 x 80
-    model.add(keras.layers.MaxPooling1D(pool_size=4))
-    # outputs: (input_length/8 x features*2) == 25 x 80
-    #    |
-    #    |
-    #    V
-    # input
-
-    # Flatten layer
-    model.add(keras.layers.Flatten())
-
-    # Dropout layer to help in creating connections within the actual network
-    model.add(keras.layers.Dropout(rate=dropout_rate))
-
-    # Dense fully connected layer with input: num_features*2 == 80
-    model.add(keras.layers.Dense(units=num_features*2))
-
-    model.add(keras.layers.Dense(units=1, activation='sigmoid'))
-
-    # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['acc'])
-
-    return model
-
-
-# Train the model with the data
-def train_model_with_data(data=None, labels=None, model=get_model(), epoch=100, batch=20):
-
-    if data is None:
-        data, labels = scraper.get_data_from_file(create_if_not_found=False)
-
-    # Initialize the tokenizer object with num_words = vocab_size
-    tokenizer = keras.preprocessing.text.Tokenizer(num_words=vocab_size)
-
-    # Tokenize the text that we actually have so the words map to integers
-    tokenizer.fit_on_texts(data)
-
-    # We should save the data that we created into a dictionary for later re-use if needed
-    try:
-        with open('word_indices.json', 'x') as outfile:
-            # dump the word index to a json file and make sure nothing is converted to ascii
-            # due to issues that arise with trying to tokenize unicode characters
-            json.dump(tokenizer.word_index, fp=outfile, ensure_ascii=False)
-    except FileExistsError as FEE:
-        print(FEE)
-
-    X_training = tokenizer.texts_to_sequences(data)
-
-    # Input length will be 2000 because the average character length is ~1100 for emails with
-    # A standard deviation of std = +/- 900 char with as a left-skewed distribution
-    X_training = keras.preprocessing.sequence.pad_sequences(X_training, maxlen=input_length, padding="post")
-
-    # print(X_training)
-
-    model.fit(x=X_training, y=labels, epochs=epoch, batch_size=batch)
-
-    loss, accuracy = model.evaluate(x=X_training, y=labels, batch_size=batch)
-
-    print("Accuracy: {:0.3%}%\nLoss: {:3f}".format(accuracy, loss))
-
-    # save the model
-    model.save(filepath="{}/models/model.h5".format(getcwd()))
-
-
-# Temporary function will not stay here for long
-def serialize_text(text, filepath="word_indices.json"):
-    with open(file=filepath, mode='r') as infile:
-        vocab = json.load(infile)
-
-    # Create a tokenizer object
-    tokenizer = keras.preprocessing.text.Tokenizer(num_words=vocab_size)
-
-    tokenizer.word_index = vocab
-
-    return tokenizer.texts_to_sequences([text])
-
-
-
-'''
-
-'''
-# evaluate the model and return a prediction
-def predict(text, filepath="{}/models/model.h5".format(getcwd()), model=None):
-'''
-'''
-seq = "Dear , Thank you for your application and interest in joining our team; we truly appreciate the time you took to apply. Upon review we found your skills and qualifications to be notable however, at this time, we have identified other candidates whose experience more closely fit the unique specifications of this current opening.While we can no longer consider you for this specific role, we are constantly seeking to strengthen our team with people who can empower the growing Virgin Pulse team to be better and stronger and we hope you will consider applying for other positions which better match your qualifications in the future. If you have applied for other positions, we will continue to review your qualifications and will keep you informed about your status for those opportunities.  Again, we appreciate the time you have taken to apply and wish you the best.Be Well,The Virgin Pulse Recruiting TeamYou can change your email preferences at:https://app.jobvite.com/l?ksJuXChwy"
-
-if __name__ == '__main__':
-'''
-'''data, label = scraper.get_data_from_file(create_if_not_found=False)
-    for d in data:
-        print(d)
-    train_model_with_data(data, label)
-    ''''''
-
-    print("Loading model")
-    model = keras.models.load_model(filepath="{}/models/model.h5".format(getcwd()))
-
-    serialized_text = serialize_text(seq)
-
-    print(serialized_text)
-
-    padded_texts = keras.preprocessing.sequence.pad_sequences(serialized_text, maxlen=input_length, padding="post")
-
-    print(padded_texts)
-
-    prediction = model.predict(padded_texts)
-
-    print(prediction)
-
-
-
-'''
