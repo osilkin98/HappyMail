@@ -14,7 +14,7 @@ bs4
 
 #### User Data ######
 # The credentials to use the actual app with Google API
-.credentials.json
+./src/configuration_files/credentials.json
 
 # The actual file that contains all the user keys
 ./src/configuration_files/keys.py
