@@ -254,9 +254,22 @@ class EmailClassifierModel(object):
         log_dir = self.logging_dir if log_dir is None else \
             "{}/{}".format(getcwd(), log_dir) if log_dir[0] != '/' else log_dir
 
+        load_progress = ""
         # Try and load
+        if load and os.path.exists(savefile if savefile is not None else self.model_file):
+            load_progress += "Loading... "
+            try:
+                self.model = keras.models.load_model(filepath=savefile if savefile is not None else self.model_file)
+                load_progress += "done\n"
 
-
+            except ValueError as ve:
+                load_progress += "failed, invalid savefile\n"
+                self.model = self.create_model(self.vocab_size,
+                                               self.num_features,
+                                               self.input_length,
+                                               self.dropout_rate)
+            finally:
+                print(load_progress)
         self.model.summary()
 
         print("Fitting the model...")
