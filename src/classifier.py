@@ -9,13 +9,16 @@ from tensorflow.python.framework.errors_impl import InternalError as TFInternalE
 # a class to put the email classifier into so that it can run
 class EmailClassifierModel(object):
 
-    def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3,
-                 model=None, index_file=None, data_file=None, model_file=None, auto_train=True, load_model=True):
+    def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3, model_dir=None,
+                 logging_dir=None, logging_file=None, model=None, index_file=None, data_file=None, model_file=None,
+                 auto_train=True, load_model=True):
         """
         :param int vocab_size: Maximum length of total vocabulary learned from data
         :param int num_features: Number of Features word vectors will have
         :param int input_length: Length of input for the actual model
         :param float dropout_rate: Floating point number between 1 and 0 for the probability of dropping neural connections in Fully Connected layer
+        :param str model_dir: Directory to where the model file should be saved, uses ./models if None is specified
+        :param str logging_dir: Directory to where the TensorFlow logging files will be saved, uses ./models/logs if None is specified
         :param keras.Sequential model: Existing Model if one was created
         :param str index_file: Filepath to the word index JSON file where word serializations will be saved/loaded from
         :param str data_file: Filepath to the training data from where to load training sets from
@@ -30,8 +33,21 @@ class EmailClassifierModel(object):
         self.input_length = input_length
         self.dropout_rate = dropout_rate
 
-        # Set the actual model file
-        self.model_file = "{}/models/model.h5".format(getcwd()) if model_file is None else model_file
+        # Sets the directory for where the file should be saved
+        self.model_dir = model_dir if model_dir is not None else "{}/models".format(getcwd())
+
+        # Sets the directory for tensorflow logging
+        self.logging_dir = logging_dir if logging_dir is not None else "{}/logs".format(self.model_dir)
+
+            # Set the actual model file, if it's an absolute file then it overrides self.model_dir
+        self.model_file = "{}/model.h5".format(self.model_dir) if model_file is None \
+                            else model_file if model_file[-1] == '/' else "{}/{}".format(getcwd(), model_file)
+
+
+
+        # If the model path doesn't exist and we weren't passed an absolute path then we create the directories
+        if self.model_file[-1] != '/' and not os.path.exists(self.model_dir):
+            os.makedirs(self.model_dir)
 
         self.trained = False
 
@@ -120,7 +136,7 @@ class EmailClassifierModel(object):
                                          input_length=input_length,
                                          mask_zero=True))  # (features x input_length)
 
-        model.add(keras.layers.CuDNNLSTM(num_features))
+        model.add(keras.layers.LSTM(num_features))
         '''
         # input: (input_length x features) == 200 x 40
         model.add(keras.layers.Conv1D(filters=num_features,  # We use the same amount of filters as features
@@ -154,7 +170,7 @@ class EmailClassifierModel(object):
         model.add(keras.layers.Dense(units=1, activation='sigmoid'))
 
         # compile the model using a binary-crossentropy as the loss function since this is a binary classifier
-        model.compile(optimizer=keras.optimizers.rmsprop, loss='binary_crossentropy', metrics=['acc'])
+        model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
 
         return model
 
@@ -194,13 +210,14 @@ class EmailClassifierModel(object):
 
     ''' Training routines '''
 
-    def train_model_with_data(self, data=None, labels=None, savefile=None, testing_data_split=0.1,
+    def train_model_with_data(self, data=None, labels=None, savefile=None, testing_data_split=0.1, log_dir=None,
                               overwrite=True, epoch=50, batch=64, verbosity=2):
         """
         :param list data: Arrays of UTF-8 encoded sentences
         :param list labels: Array of 1s and 0s corresponding to positive and negative data-pieces, respectively
         :param string savefile: File Path to save the trained model, overrides self.model_file
         :param float testing_data_split: Float on domain [0, 1) of the percentage of data that should be alloted to testing
+        :param str log_dir: Directory for where to log the TensorFlow graph, overrides the default object's directory
         :param bool overwrite: Boolean flag to specify whether or not we should overwrite existing saved data
         :param int epoch: Integer of epochs to run on the given data
         :param int batch: Integer of how much data should we process at a time
@@ -230,22 +247,27 @@ class EmailClassifierModel(object):
         processed_data = keras.preprocessing.sequence.pad_sequences(sequences=processed_data,
                                                                     maxlen=self.input_length,
                                                                     padding="post")
-        print("Fitting the model...")
 
+        log_dir = self.logging_dir if log_dir is None else \
+            "{}/{}".format(getcwd(), log_dir) if log_dir[0] != '/' else log_dir
+
+
+        print("Fitting the model...")
         # This is the actual training step of the process
         self.model.fit(x=processed_data, y=labels, batch_size=batch, verbose=verbosity,
-                       epochs=epoch, validation_split=testing_data_split)
+                       epochs=epoch, validation_split=testing_data_split,
+                       callbacks=[keras.callbacks.TensorBoard(log_dir=log_dir)])
 
         self.model.evaluate(x=processed_data, y=labels)
         print("Done")
 
-        try:
-            # Save the model
-            if not os.path.exists(self.model_dir):
-                os.makedirs(self.model_dir)
 
-            self.model.save(filepath = self.model_file if savefile is None else savefile,
-                            overwrite=overwrite)
+        # Save the model
+        if not os.path.exists(self.model_dir):
+            os.makedirs(self.model_dir)
+
+        self.model.save(filepath = self.model_file if savefile is None else savefile,
+                        overwrite=overwrite)
 
 
     # to train the model with a different datafile
