@@ -315,8 +315,6 @@ class EmailClassifierModel(object):
         return self.model.predict(to_process)[0][0]
 
 
-
-
 def test_class(ModelObject):
 
     while True:
