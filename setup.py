@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name='HappyMail',
     version='0.1',
-    packages=['HappyMail',],
+    packages=['src',],
     license='MIT License',
     long_description=open('README.md', mode='r').read(),
 )

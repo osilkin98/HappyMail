@@ -1,5 +1,5 @@
 import keras
-from HappyMail import scraper
+from src import scraper
 import json
 import os
 from os import getcwd
