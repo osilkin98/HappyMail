@@ -1,7 +1,6 @@
 import keras
 from src import scraper
 import json
-import numpy as np
 import os
 from os import getcwd
 from tensorflow.python.framework.errors_impl import InternalError as TFInternalError
@@ -136,12 +135,14 @@ class EmailClassifierModel(object):
         """
         model = keras.Sequential()
         # input is going to be
+        # input is going to be
         model.add(keras.layers.Embedding(input_dim=vocab_size,  # for the vocabulary size
                                          output_dim=num_features,  # our output is going to be
                                          input_length=input_length,
-                                         ))  # (features x input_length)
+                                         mask_zero=True))  # (features x input_length)
 
-        model.add(keras.layers.CuDNNLSTM(num_features, unit_forget_bias=True))
+        model.add(keras.layers.LSTM(num_features, dropout=dropout_rate))
+
         '''
         # input: (input_length x features) == 200 x 40
         model.add(keras.layers.Conv1D(filters=num_features,  # We use the same amount of filters as features
@@ -379,9 +380,7 @@ def test_class(ModelObject):
 
 
 if __name__ == "__main__":
-    # d = EmailClassifierModel(input_length=200, model_file="models/lower_input.h5")
-
-    d = EmailClassifierModel(epochs=2000, input_length=200, vocab_size=5000, logging_dir="gpu_logs", model_dir='gpu_models')
+    d = EmailClassifierModel(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5", epochs=400)
 
     print(d.__dict__)
 
