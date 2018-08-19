@@ -7,13 +7,20 @@ from subprocess import call
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
     def run(self):
+        # this is the actual command that will be run to install from requirements.txt
         pip_command = "{}/venv3.6/bin/python3.6 -m pip install -r requirements.txt --user".format(os.getcwd())
+
+
         print("Running {}".format(pip_command))
 
+        # This is the call to the function
         call(pip_command.split(' '))
 
+        # Now we actually create the config files
         print("Creating config files")
-        configdir = "{}/src/config_files".format(os.getcwd())
+
+        # We set the directory to the configuration
+        configdir = "{}/src/configuration_files".format(os.getcwd())
         # If the configuration file directory doesn't exist
         if not exists(configdir):
             os.mkdir(configdir)
