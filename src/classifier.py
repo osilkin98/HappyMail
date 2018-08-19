@@ -239,9 +239,14 @@ class EmailClassifierModel(object):
         self.model.evaluate(x=processed_data, y=labels)
         print("Done")
 
-        # Save the model
-        self.model.save(filepath = self.model_file if savefile is None else savefile,
-                        overwrite=overwrite)
+        try:
+            # Save the model
+            if not os.path.exists(self.model_dir):
+                os.makedirs(self.model_dir)
+
+            self.model.save(filepath = self.model_file if savefile is None else savefile,
+                            overwrite=overwrite)
+
 
     # to train the model with a different datafile
     # As in the train_model_with_data method, the arguments are virtually identical,
