@@ -4,10 +4,10 @@ from httplib2 import Http
 from oauth2client import file, client, tools
 import os
 import base64
+import configuration_files.keys as keys
 import unicodedata
 import json
 # import numpy as np
-import keys
 import bs4 as bs
 import random
 
@@ -55,11 +55,11 @@ def shuffle_messages(messages, labels, seed=None):
 
 
 # Create Gmail Service
-def get_gmail_service(filepath="{}/credentials.json".format(os.getcwd()), scope_mode='modify'):
+def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), scope_mode='modify'):
     # set the Gmail Scope
     SCOPES = "https://www.googleapis.com/auth/gmail.{}".format(scope_mode)
 
-    store = file.Storage('{}/token.json'.format(os.getcwd()))
+    store = file.Storage('{}/configuration_files/token.json'.format(os.getcwd()))
     # Try and get the credentials
     creds = store.get()
     flags = tools.argparser.parse_args(args=[])
