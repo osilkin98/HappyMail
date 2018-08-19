@@ -34,6 +34,7 @@ class EmailClassifierModel(object):
         self.num_features = num_features
         self.input_length = input_length
         self.dropout_rate = dropout_rate
+        self.epochs = epochs
 
         # Sets the directory for where the file should be saved
         self.model_dir = model_dir if model_dir is not None else "{}/models".format(getcwd())
@@ -107,7 +108,7 @@ class EmailClassifierModel(object):
                     self.set_word_index_from_data(data, overwrite=True)
 
         if not self.trained and auto_train:
-            self.train_model_with_data()
+            self.train_model_with_data(epoch=epochs)
 
         # If the index file doesn't exist, we should do nothing because it should learn the word indexes
         # Through the actual training process since the index file was not specified
@@ -380,10 +381,8 @@ def test_class(ModelObject):
 if __name__ == "__main__":
     # d = EmailClassifierModel(input_length=200, model_file="models/lower_input.h5")
 
-    d = EmailClassifierModel(input_length=200, vocab_size=5000, logging_dir="gpu_logs", model_dir='gpu_models')
+    d = EmailClassifierModel(epochs=2000, input_length=200, vocab_size=5000, logging_dir="gpu_logs", model_dir='gpu_models')
 
     print(d.__dict__)
 
-    # d.train_model_with_data(epoch=400)
-
-    d.model.summary()
+    test_class(d)
