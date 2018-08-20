@@ -2,7 +2,9 @@
 # Gmail API imports
 from scraper import get_gmail_service
 import classifier
+import json
 from configuration_files import keys
+from time import sleep
 
 """ 
     We need to write a function that fetches a list of emails and keep scrolling through
@@ -40,3 +42,12 @@ def get_email_list(service=get_gmail_service(), last_message_id=None):
     return messages, first_message_id
 
 
+def classify_messages():
+    messages, first_message = get_email_list()
+
+    for message in messages:
+        print(json.dumps(message, indent=4))
+
+
+if __name__== '__main__':
+    classify_messages()
