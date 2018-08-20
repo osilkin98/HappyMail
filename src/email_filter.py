@@ -9,6 +9,7 @@ from configuration_files import keys
     until we find an email we've read 
 """
 
+
 def get_email_list(service=get_gmail_service(), last_message_id=None):
     """
 
@@ -37,3 +38,5 @@ def get_email_list(service=get_gmail_service(), last_message_id=None):
         messages.append(full_message)
 
     return messages, first_message_id
+
+
