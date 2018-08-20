@@ -340,11 +340,11 @@ class EmailClassifierModel(object):
         # Save the model
         self.model.save(filepath=self.model_file if savefile is None else savefile, overwrite=overwrite)
 
-    def predict(self, text: str):
+    def predict(self, texts: tuple):
         """
 
-        :param str text: Text to use as input for the prediction
-        :return: Returns a computed value between 0 and 1, 1 being positive and 0 being negative.
+        :param tuple texts: A list/tuple of texts to compute predictions on
+        :return: Returns a listed of computed values between 0 and 1, 1 being positive and 0 being negative. These Texts correspond to the index of the text string
         """
 
         # if we don't have any word serialization
@@ -359,14 +359,14 @@ class EmailClassifierModel(object):
         # otherwise we should be fine to go
 
         # We enclose the text given as a single element within an array
-        to_process = self.tokenizer.texts_to_sequences([text])
+        to_process = self.tokenizer.texts_to_sequences(texts)
 
         # We then pad the sequence to the end with 0s if text < 2000 and cut it off at 2000 if text > 2000
         to_process = keras.preprocessing.sequence.pad_sequences(to_process,
                                                                 maxlen=self.input_length,
                                                                 padding='post')
 
-        return self.model.predict(to_process)[0][0]
+        return self.model.predict(to_process)
 
 
 def test_class(ModelObject):
