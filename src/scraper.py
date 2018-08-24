@@ -56,6 +56,16 @@ def shuffle_messages(messages, labels, seed=None):
 
 # Create Gmail Service
 def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), scope_mode='modify'):
+    """
+    :param filepath: t
+    :type filepath: str
+    :param scope_mode:
+    :type scope_mode:
+    :return:
+    :rtype:
+
+
+    """
     # set the Gmail Scope
     SCOPES = "https://www.googleapis.com/auth/gmail.{}".format(scope_mode)
 
@@ -78,12 +88,22 @@ def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(
         service = build('gmail', 'v1', http=creds.authorize(Http()))
 
     except apiclient.discovery.HttpError as e:
-        print("HttpError: {}\nErrorContents: {}".format(e.error_details, e.content))
+        print("HttpError: {}\nErrorContents: {}".format(e, e.content))
     except Exception as e:
         print("Standard Exception caused by: {}\n Traceback: {}".format(e.__cause__, e.__traceback__))
     finally:
         # Return the created gmail service
         return service
+
+
+# Takes a given message as a JSON element retrieved from the Google API
+def message_to_texts(message):
+    """
+
+    :param message: A Message Object returned from the Gmail service.users().messages().get() method
+    :type message: dict
+    :return: List of texts decoded from base64 into normal texts. This is returned as a list since messages can be fragmented
+    """
 
 
 # Args:     Labels is a dict object in which the key is the label's name and the value is the ID
