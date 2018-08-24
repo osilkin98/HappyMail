@@ -127,10 +127,14 @@ class EmailClassifierModel(object):
     def create_model(vocab_size=4000, num_features=40, input_length=2000, dropout_rate=0.3):
         """
 
-        :param int vocab_size: Maximum number of words to be learned in embedding layer
-        :param int num_features: Dimensionality of embedded word vectors, I.E. the number of features they have
-        :param int input_length: Length of input text
-        :param float dropout_rate: Floating point number on [0, 1) that indicates the percentage of dropped neuron connections
+        :param vocab_size: Maximum number of words to be learned in embedding layer
+        :type vocab_size: int
+        :param num_features: Dimensionality of embedded word vectors, I.E. the number of features they have
+        :type num_features: int
+        :param input_length: Length of input text
+        :type input_length: int
+        :param dropout_rate: Floating point number on [0, 1) that indicates the percentage of dropped neuron connections
+        :type dropout_rate: float
         :return model: Keras Sequential object
         """
         model = keras.Sequential()
@@ -300,9 +304,10 @@ class EmailClassifierModel(object):
     # to train the model with a different datafile
     # As in the train_model_with_data method, the arguments are virtually identical,
     # However instead of passing in data explicitly, we pass in a datafile path to get the data from
-    def train_model_with_file(self, datafile=None, savefile=None, testing_split=0.1,
-                              overwrite=True, epoch=100, batch=20, verbosity=2):
-        """
+    def train_model_with_file(self, datafile= None, savefile = None, testing_split = 0.1,
+                              overwrite = True, epoch = 100, batch = 20, verbosity = 2):
+
+        """ Train the model with the given file
 
         :param str datafile: Path to where the training data needs to be loaded from, overrides self.data_file
         :param str savefile: Path to where the trained model will be saved to, overrides self.model_file
@@ -311,7 +316,7 @@ class EmailClassifierModel(object):
         :param int epoch: Number of times we should train over every sample in the dataset
         :param int batch: Number of samples we should train with at each step
         :param int verbosity: Level of output during training: 2 - Print each epoch, 1 - Progress Bar, 0 - Total Silence
-        :return: Nothing
+        :return: None
         """
         # Cap the verbosity level off at 2
         verbosity %= 3
@@ -379,9 +384,37 @@ def test_class(ModelObject):
         print(pred)
 
 
+def function(param1, param2):
+    """
+
+    :param int param1: First parameter
+    :param tuple param2: Second Paramter
+    :return: Returns some shit here
+    """
+
+
 if __name__ == "__main__":
     d = EmailClassifierModel(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5", epochs=400)
 
     print(d.__dict__)
 
     test_class(d)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
