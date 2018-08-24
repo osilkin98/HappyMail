@@ -57,12 +57,10 @@ def shuffle_messages(messages, labels, seed=None):
 # Create Gmail Service
 def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), scope_mode='modify'):
     """
-    :param filepath: t
-    :type filepath: str
-    :param scope_mode:
-    :type scope_mode:
-    :return:
-    :rtype:
+    :param str filepath: Filepath to the JSON Credentials file
+    :param str scope_mode: Gmail API mode to create Gmail Service with
+    :return: A Gmail Resource Object
+    :rtype: Resource
 
 
     """
@@ -96,12 +94,10 @@ def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(
         return service
 
 
-# Takes a given message as a JSON element retrieved from the Google API
 def message_to_texts(message):
-    """
+    """ Takes a given message as a JSON element retrieved from the Google API
 
-    :param message: A Message Object returned from the Gmail service.users().messages().get() method
-    :type message: dict
+    :param dict message: A Message Object returned from the Gmail service.users().messages().get() method
     :return: List of texts decoded from base64 into normal texts. This is returned as a list since messages can be fragmented
     """
 

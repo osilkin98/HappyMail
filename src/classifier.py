@@ -127,14 +127,10 @@ class EmailClassifierModel(object):
     def create_model(vocab_size=4000, num_features=40, input_length=2000, dropout_rate=0.3):
         """
 
-        :param vocab_size: Maximum number of words to be learned in embedding layer
-        :type vocab_size: int
-        :param num_features: Dimensionality of embedded word vectors, I.E. the number of features they have
-        :type num_features: int
-        :param input_length: Length of input text
-        :type input_length: int
-        :param dropout_rate: Floating point number on [0, 1) that indicates the percentage of dropped neuron connections
-        :type dropout_rate: float
+        :param int vocab_size: Maximum number of words to be learned in embedding layer
+        :param int num_features: Dimensionality of embedded word vectors, I.E. the number of features they have
+        :param int input_length: Length of input text
+        :param float dropout_rate: Floating point number on [0, 1) that indicates the percentage of dropped neuron connections
         :return model: Keras Sequential object
         """
         model = keras.Sequential()
@@ -384,14 +380,6 @@ def test_class(ModelObject):
         print(pred)
 
 
-def function(param1, param2):
-    """
-
-    :param int param1: First parameter
-    :param tuple param2: Second Paramter
-    :return: Returns some shit here
-    """
-
 
 if __name__ == "__main__":
     d = EmailClassifierModel(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5", epochs=400)
@@ -399,22 +387,4 @@ if __name__ == "__main__":
     print(d.__dict__)
 
     test_class(d)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
