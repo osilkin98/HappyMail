@@ -12,12 +12,14 @@ from time import sleep
 """
 
 
+# This will just return a list of emails that we can then process
+# In the future we should just continue making requests and extending the list until the last_message_id is reached
 def get_email_list(service=get_gmail_service(), last_message_id=None):
     """
 
-    :param service: Google API Service Object, if one is not provided, it'll be automatically generated from scraper.get_gmail_service()
-    :param last_message_id: The ID hash of the message that we recorded last, so we can prevent the program from making too many requests
-    :return:
+    :param service service: Google API Service Object, if one is not provided, it'll be automatically generated from scraper.get_gmail_service()
+    :param str last_message_id: The ID hash of the message that we recorded last, so we can prevent the program from making too many requests
+    :return: A list of Un-decoded Messages in JSON format, as well as the message ID for the first message received, respectively
     """
     messages_meta = service.users().messages().list(userId=keys.user_id).execute()
 
