@@ -185,7 +185,7 @@ class EmailClassifierModel(object):
     def set_word_index_from_data(self, data, serial_file=None, overwrite=True):
         """
 
-        :param array data: List of UTF-8 Strings Given as Training Data
+        :param list data: List of UTF-8 Strings Given as Training Data
         :param str serial_file: Path to Word Index JSON file
         :param bool overwrite: Flag that indicates whether or not the existing data should be overwritten
         :return: Nothing
