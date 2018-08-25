@@ -14,7 +14,6 @@ import bs4 as bs
 import random
 
 
-
 # Shuffle the given messages along with their labels
 # Assumption is that messages and labels have matching indices
 def shuffle_messages(messages, labels, seed=None):
@@ -73,6 +72,7 @@ def retrieve_credentials(filepath="{}/configuration_files/credentials.json".form
 
             if os.path.exists(filepath):
                 break
+
         # If the filepath was still not found
         if not os.path.exists(filepath):
             print("Failed to save credentials file, raising File not Found error.")
@@ -82,12 +82,10 @@ def retrieve_credentials(filepath="{}/configuration_files/credentials.json".form
 # Create Gmail Service
 def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), scope_mode='modify'):
     """
-    :param filepath: t
-    :type filepath: str
-    :param scope_mode:
-    :type scope_mode:
-    :return:
-    :rtype:
+    :param str filepath: Filepath to Gmail API credentials JSON file
+    :param str scope_mode: Scope to use when creating Gmail API Token.
+    :return: Gmail API Resource object
+    :rtype: Resource | None
 
 
     """
@@ -399,3 +397,5 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeri
         labels = list(map(lambda data: 1 if data == "positive" else 0, labels))
 
     return messages, labels
+
+
