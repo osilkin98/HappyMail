@@ -1,21 +1,25 @@
+import pip
 from distutils.core import setup
 from distutils.command.build_py import build_py
 import os
 from os.path import exists
-from subprocess import call
 from sys import executable
 
+
+def install_packages(packages):
+    """
+    :param packages: List of Python Package names to be installed by pip in the format 'package-name>=version.number'
+    :return: Nothing
+    """
+    try:
+        for package in packages:
+            pip.main(['install', '--user', package])
+    except SystemExit as e:
+        print(e)
 
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
     def run(self):
-        # this is the actual command that will be run to install from requirements.txt
-        pip_command = "{} -m pip install -r requirements.txt --user".format(executable)
-
-        print("Running {}".format(pip_command))
-
-        # This is the call to the function
-        call(pip_command.split(' '))
 
         # Now we actually create the config files
         print("Creating config files")
