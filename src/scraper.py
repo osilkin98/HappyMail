@@ -223,11 +223,11 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 
                 # print("Messages: {}\nMessage_labels: {}\n".format(messages, message_labels))
 
-    except apiclient.errors.HttpError as he:
+    except apiclient.discovery.HttpError as he:
         print("Got HttpError in get_messages_from_label: {}".format(he))
         print("This is most likely caused by sending too many requests to the Gmail Service")
 
-    except apiclient.errors.Error as e:
+    except Exception as e:
         print(e)
 
     finally:
@@ -353,7 +353,6 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeri
             # do the same for the labels
             labels.append(message["label"].encode("utf-8").decode("utf-8"))
             # break
-
 
     # Control mechanism to allow users to retrieve the data without shuffling it
     if shuffle:
