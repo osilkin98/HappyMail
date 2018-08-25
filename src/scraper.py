@@ -135,12 +135,16 @@ def message_to_texts(message):
     return messages
 
 
-# Args:     Labels is a dict object in which the key is the label's name and the value is the ID
-#           Query is a string object, service is (obviously) the Gmail service object, which
-#           the default parameter will retrieve should the user fail to provide it
-#
-# Return:   Returns a list of messages
+
 def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=False):
+    """Obtains Messages from the user's defined email labels
+
+    :param dict labels: Dictionary Where the key is the label's name and the value is the label's ID
+    :param Resource service: Gmail Resource object which lets us communicate to the user's Gmail account
+    :param bool include_spam: Flag to indicate whether or not we should aggregate spam mail alongside our labels
+    :return: Returns a list of messages obtained from the labels, and a list of labels at their respective index
+    :rtype: list, list
+    """
     # Since we want to separate the data from the labels, we'll create
     # Two parallel arrays for the data we retrieve from the Gmail API
     messages = []
@@ -169,6 +173,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
             retrieve the actual message that the id maps to
             
             """
+
             label_list = [label_id]
 
             assert len(label_list) == 1
