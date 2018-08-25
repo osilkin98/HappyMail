@@ -384,37 +384,11 @@ def test_class(ModelObject):
         print(pred)
 
 
-def function(param1, param2):
-    """
-
-    :param int param1: First parameter
-    :param tuple param2: Second Paramter
-    :return: Returns some shit here
-    """
-
-
 if __name__ == "__main__":
     d = EmailClassifierModel(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5", epochs=400)
 
     print(d.__dict__)
 
     test_class(d)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
