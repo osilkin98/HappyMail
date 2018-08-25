@@ -3,7 +3,7 @@ from distutils.core import setup
 from distutils.command.build_py import build_py
 import os
 from os.path import exists
-from sys import executable
+
 
 
 def install_packages(packages):
