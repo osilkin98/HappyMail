@@ -135,7 +135,6 @@ def message_to_texts(message):
     return messages
 
 
-
 def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=False):
     """Obtains Messages from the user's defined email labels
 
@@ -202,58 +201,17 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                 # some of these messages will be segmented in parts so we split up into parts
                 # so we just iterate through and extract as much data as we can
                 # We might have to implement some form of traversal in order for this to be robust and extensible
-                if 'parts' in message_full['payload']:
-                    for part in message_full['payload']['parts']:
 
-                        # if we don't have any data field
-                        if 'data' not in part['body']:
-                            continue
+                message_texts = message_to_texts(message_full)
 
-                        soup = bs.BeautifulSoup(base64.urlsafe_b64decode(part['body']['data']).decode("utf-8"),
-                                                "html.parser")
+                messages += message_texts
 
-                        for script in soup(['script', 'style']):
-                            script.decompose()
+                extra_labels = [label] * len(message_texts)
 
-                        messages.append(soup.get_text())
+                message_labels += extra_labels
 
-                        '''
-                        # If the message was decoded with single apostrophes
-                        if part['body']['data'][-1] == "'":
-                            messages.append(base64.urlsafe_b64decode(part['body']['data']).rstrip("'").lstrip("b'"))
-    
-                        # Otherwise if it was decoded with double apostrophes
-                        else:
-                            messages.append(base64.urlsafe_b64decode(part['body']['data']).rstrip('"').lstrip('b"'))
-    
-                        print("Appending (fragmented)")
-                        '''
-                        message_labels.append(label)
-
-                # Otherwise if the message is whole
-                else:
-
-                    soup = bs.BeautifulSoup(base64.urlsafe_b64decode(
-                        message_full['payload']['body']['data']).decode("utf-8"), "html.parser")
-
-                    for script in soup(['script', 'style']):
-                        script.decompose()
-
-                    messages.append(soup.get_text())
-
-                    message_labels.append(label)
-                    '''
-                    # Again, if the message was decoded with encapsulating single apostrophe
-                    if message_full['payload']['body']['data'][-1] == "'":
-                        messages.append(base64.urlsafe_b64decode(
-                            message_full['payload']['body']['data']).rstrip("'").lstrip("b'"))
-    
-                    # otherwise if it was decoded with double apostrophes
-                    else:
-                        decoded64 = base64.urlsafe_b64decode(message_full['payload']['body']['data'])
-                        messages.append(decoded64.rstrip('"').lstrip('b"'))
-    
-                    print("Appending")'''
+                print("Added texts ({}): {}\nAdded Labels  ({}): {}\n\n".format(len(message_texts), message_texts,
+                                                                                len(extra_labels), extra_labels))
 
                 # print("Messages: {}\nMessage_labels: {}\n".format(messages, message_labels))
 
