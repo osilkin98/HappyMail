@@ -57,6 +57,28 @@ def shuffle_messages(messages, labels, seed=None):
         return messages, labels
 
 
+def retrieve_credentials(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), retry=3):
+    """ Attempts to have the user download the Google API Credentials file in json format
+
+    :param filepath: Path to API Credentials JSON file
+    :param int retry: Number of times to try downloading the credentials file
+    :raises: FileNotFoundError if the file was downloaded but not to the correct location, or if it failed to download
+    """
+    if not os.path.exists(filepath):
+        print("could not find file: {}\nRedirecting to Google API key download".format(filepath))
+
+        for i in range(retry):
+            open_new_tab("https://console.developers.google.com/apis/credentials?project=email-filter-212723")
+            input("Save the credentials file to {}, and press enter when done. ".format(filepath))
+
+            if os.path.exists(filepath):
+                break
+        # If the filepath was still not found
+        if not os.path.exists(filepath):
+            print("Failed to save credentials file, raising File not Found error.")
+            raise FileNotFoundError("Failed to download {} file passed in as filepath argument.".format(filepath))
+
+
 # Create Gmail Service
 def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), scope_mode='modify'):
     """
@@ -80,7 +102,14 @@ def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(
     # If we failed to get token.json (because we don't have the file)
     if not creds:
         # Create flow object using the credentials json file
-        flow = client.flow_from_clientsecrets(filename=filepath, scope=SCOPES)
+        try:
+            flow = client.flow_from_clientsecrets(filename=filepath, scope=SCOPES)
+
+        except InvalidClientSecretsError as icse:
+            print("{} was caught, likely due to {} not exisitng, trying to download...".format(icse, filepath))
+
+            # Try to download the file and catch the notfound exception
+
         # Run the flow using our created flow and the Storage object
         creds = tools.run_flow(flow=flow, storage=store, flags=flags)
 
