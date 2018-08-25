@@ -60,7 +60,7 @@ def shuffle_messages(messages, labels, seed=None):
 def retrieve_credentials(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), retry=3):
     """ Attempts to have the user download the Google API Credentials file in json format
 
-    :param filepath: Path to API Credentials JSON file
+    :param str filepath: Path to API Credentials JSON file
     :param int retry: Number of times to try downloading the credentials file
     :raises: FileNotFoundError if the file was downloaded but not to the correct location, or if it failed to download
     """
@@ -107,6 +107,16 @@ def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(
 
         except InvalidClientSecretsError as icse:
             print("{} was caught, likely due to {} not exisitng, trying to download...".format(icse, filepath))
+
+            try:
+                retrieve_credentials(filepath=filepath)
+
+            # If for some reason we failed to obtain the credentials
+            except FileNotFoundError as fnf:
+                print(fnf)
+                return None
+
+            flow = client.flow_from_clientsecrets(filename=filepath, scope=SCOPES)
 
             # Try to download the file and catch the notfound exception
 
