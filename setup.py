@@ -5,6 +5,7 @@ from os.path import exists
 from subprocess import call
 from sys import executable
 
+
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
     def run(self):
