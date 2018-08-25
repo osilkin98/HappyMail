@@ -12,12 +12,14 @@ oauth2client
 # To parse the actual data that we created
 bs4
 
+# To run the actual classifier
+tf-nightly-gpu
+keras
+
+
 #### User Data ######
 # The credentials to use the actual app with Google API
 ./src/configuration_files/credentials.json
 
 # The actual file that contains all the user keys
 ./src/configuration_files/keys.py
-
-# To run the actual classifier
-keras
