@@ -12,7 +12,6 @@ class my_build_py(build_py):
         # this is the actual command that will be run to install from requirements.txt
         pip_command = "{} -m pip install -r requirements.txt --user".format(executable)
 
-
         print("Running {}".format(pip_command))
 
         # This is the call to the function
