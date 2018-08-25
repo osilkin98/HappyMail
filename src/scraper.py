@@ -2,6 +2,8 @@ import apiclient
 from apiclient.discovery import build
 from httplib2 import Http
 from oauth2client import file, client, tools
+from oauth2client.clientsecrets import InvalidClientSecretsError
+from webbrowser import open_new_tab, Error
 import os
 import base64
 import configuration_files.keys as keys
@@ -10,6 +12,7 @@ import json
 # import numpy as np
 import bs4 as bs
 import random
+
 
 
 # Shuffle the given messages along with their labels
@@ -210,8 +213,10 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 
                 message_labels += extra_labels
 
-                print("Added texts ({}): {}\nAdded Labels  ({}): {}\n\n".format(len(message_texts), message_texts,
-                                                                                len(extra_labels), extra_labels))
+                assert len(message_texts) == len(extra_labels)
+
+                # print("Added texts ({}): {}\nAdded Labels  ({}): {}\n\n".format(len(message_texts), message_texts,
+                #                                                                 len(extra_labels), extra_labels))
 
                 # print("Messages: {}\nMessage_labels: {}\n".format(messages, message_labels))
 
@@ -226,6 +231,8 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
         print("\n\n\n{}{}{}\nMessages ({}): {}\nLabels ({}): {}".format('*'*20, ' TOTAL MESSAGES ', '*'*20,
                                                                         len(messages), messages,
                                                                         len(message_labels), message_labels))
+
+        assert len(messages) == len(message_labels)
 
         return messages, message_labels
 
