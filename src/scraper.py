@@ -223,6 +223,10 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
         print(e)
 
     finally:
+        print("\n\n\n{}{}{}\nMessages ({}): {}\nLabels ({}): {}".format('*'*20, ' TOTAL MESSAGES ', '*'*20,
+                                                                        len(messages), messages,
+                                                                        len(message_labels), message_labels))
+
         return messages, message_labels
 
 
@@ -335,13 +339,7 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeri
         for message in message_tags:
             # append the messages within the <pre> tag to the array and encode them down into utf-8
             messages.append(str(message.contents[0]))
-            '''
-            print("message.contents[0]: {}".format(type(message.contents[0])))
-            print("message.contents[0].encode(\"utf-8\"): {}".format(type(message.contents[0].encode("utf-8"))))
-            print("message.contents[0].encode(\"utf-8\").decode(\"utf-8\"): {}".format(
-                type(message.contents[0].encode("utf-8").decode("utf-8")))
-            )
-            '''
+
             # do the same for the labels
             labels.append(message["label"].encode("utf-8").decode("utf-8"))
             # break
