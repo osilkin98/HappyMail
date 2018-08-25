@@ -96,14 +96,43 @@ def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(
         return service
 
 
-# Takes a given message as a JSON element retrieved from the Google API
 def message_to_texts(message):
-    """
+    """ Takes a given message as a JSON element retrieved from the Google API
 
-    :param message: A Message Object returned from the Gmail service.users().messages().get() method
-    :type message: dict
-    :return: List of texts decoded from base64 into normal texts. This is returned as a list since messages can be fragmented
+    :param type message: A Message Object returned from the Gmail service.users().messages().get() method
+    :return: List of texts decoded from base64 into normal texts. This is returned as a list since messages can be\
+     fragmented
+    :rtype: list
     """
+    messages = []
+
+    # If the message is fragmented into parts
+    if 'parts' in message['payload']:
+        for part in message['payload']['parts']:
+
+            # If we don't have a data field then there's nothing to append here
+            if 'data' not in part['body']:
+                continue
+
+            soup = bs.BeautifulSoup(base64.urlsafe_b64decode(part['body']['data']).decode('utf-8'),
+                                    "html.parser")
+
+            for script in soup(['script', 'style']):
+                script.decompose()
+
+            messages.append(soup.get_text())
+
+    else:
+
+        soup = bs.BeautifulSoup(base64.urlsafe_b64decode(
+            message['payload']['body']['data']).decode("utf-8"), "html.parser")
+
+        for script in soup(['script', 'style']):
+            script.decompose()
+
+        messages.append(soup.get_text())
+
+    return messages
 
 
 # Args:     Labels is a dict object in which the key is the label's name and the value is the ID
