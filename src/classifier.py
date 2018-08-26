@@ -16,16 +16,19 @@ class EmailClassifierModel(object):
         :param int vocab_size: Maximum length of total vocabulary learned from data
         :param int num_features: Number of Features word vectors will have
         :param int input_length: Length of input for the actual model
-        :param float dropout_rate: Floating point number between 1 and 0 for the probability of dropping neural connections in Fully Connected layer
-        :param int epoch: Number of times to run the model through the entire training set
+        :param float dropout_rate: Floating point number between 1 and 0 for the probability of dropping neural\
+         connections in Fully Connected layer
+        :param int epochs: Number of times to run the model through the entire training set
         :param str model_dir: Directory to where the model file should be saved, uses ./models if None is specified
-        :param str logging_dir: Directory to where the TensorFlow logging files will be saved, uses ./models/logs if None is specified
+        :param str logging_dir: Directory to where the TensorFlow logging files will be saved, uses ./models/logs if\
+         None is specified
         :param keras.Sequential model: Existing Model if one was created
         :param str index_file: Filepath to the word index JSON file where word serializations will be saved/loaded from
         :param str data_file: Filepath to the training data from where to load training sets from
         :param str model_file: Filepath to where the model should be loaded from or saved to
         :param bool auto_train: Flag to indicate whether or not the model should be retrained if we couldn't load it
-        :param bool load_model: Flag to indicate whether we should ignore a model file if it was already saved or if we load it
+        :param bool load_model: Flag to indicate whether we should ignore a model file if it was already saved or if \
+        we load it
         """
 
         # To set the model's hyper-parameters
@@ -41,11 +44,9 @@ class EmailClassifierModel(object):
         # Sets the directory for tensorflow logging
         self.logging_dir = logging_dir if logging_dir is not None else "{}/logs".format(self.model_dir)
 
-            # Set the actual model file, if it's an absolute file then it overrides self.model_dir
+        # Set the actual model file, if it's an absolute file then it overrides self.model_dir
         self.model_file = "{}/model.h5".format(self.model_dir) if model_file is None \
-                            else model_file if model_file[-1] == '/' else "{}/{}".format(getcwd(), model_file)
-
-
+            else model_file if model_file[-1] == '/' else "{}/{}".format(getcwd(), model_file)
 
         # If the model path doesn't exist and we weren't passed an absolute path then we create the directories
         if self.model_file[-1] != '/' and not os.path.exists(self.model_dir):
@@ -226,7 +227,10 @@ class EmailClassifierModel(object):
         :param list data: Arrays of UTF-8 encoded sentences
         :param list labels: Array of 1s and 0s corresponding to positive and negative data-pieces, respectively
         :param string savefile: File Path to save the trained model, overrides self.model_file
-        :param float testing_data_split: Float on domain [0, 1) of the percentage of data that should be alloted to testing
+        :param bool load: Flag to indicate whether or not we should load from the savefile if it exists, or just write \
+        to it
+        :param float testing_data_split: Float on domain [0, 1) of the percentage of data that should be alloted to \
+        testing
         :param str log_dir: Directory for where to log the TensorFlow graph, overrides the default object's directory
         :param bool overwrite: Boolean flag to specify whether or not we should overwrite existing saved data
         :param int epoch: Integer of epochs to run on the given data
@@ -244,7 +248,6 @@ class EmailClassifierModel(object):
             data, labels = scraper.get_data_from_file(infile=self.data_file)
 
         self.set_word_index_from_data(data)
-
 
         # The data provided is turned from strings to arrays of integers which map the words within it to
         # a word index so we can train the model to use text embeddings, this is what is passed
@@ -271,7 +274,7 @@ class EmailClassifierModel(object):
                 self.model = keras.models.load_model(filepath=savefile if savefile is not None else self.model_file)
                 load_progress += "done\n"
 
-            except ValueError as ve:
+            except ValueError:
                 load_progress += "failed, invalid savefile\n"
                 self.model = self.create_model(self.vocab_size,
                                                self.num_features,
@@ -291,27 +294,25 @@ class EmailClassifierModel(object):
         self.model.evaluate(x=processed_data, y=labels)
         print("Done")
 
-
         # Save the model
         if not os.path.exists(self.model_dir) and savefile is None:
             os.mkdir(self.model_dir)
 
-
-        self.model.save(filepath = self.model_file if savefile is None else savefile,
+        self.model.save(filepath=self.model_file if savefile is None else savefile,
                         overwrite=overwrite)
-
 
     # to train the model with a different datafile
     # As in the train_model_with_data method, the arguments are virtually identical,
     # However instead of passing in data explicitly, we pass in a datafile path to get the data from
-    def train_model_with_file(self, datafile= None, savefile = None, testing_split = 0.1,
-                              overwrite = True, epoch = 100, batch = 20, verbosity = 2):
+    def train_model_with_file(self, datafile=None, savefile=None, testing_split=0.1,
+                              overwrite=True, epoch=100, batch=20, verbosity=2):
 
         """ Train the model with the given file
 
         :param str datafile: Path to where the training data needs to be loaded from, overrides self.data_file
         :param str savefile: Path to where the trained model will be saved to, overrides self.model_file
-        :param float testing_split: Floating point number between 0 and 1 that indicates what portion of the training data will be used for testing the model
+        :param float testing_split: Floating point number between 0 and 1 that indicates what portion of the training \
+        data will be used for testing the model
         :param bool overwrite: Flag to indicate whether or not we should overwrite existing files
         :param int epoch: Number of times we should train over every sample in the dataset
         :param int batch: Number of samples we should train with at each step
@@ -322,7 +323,7 @@ class EmailClassifierModel(object):
         verbosity %= 3
 
         # These are the labels and the data
-        data, labels = scraper.get_data_from_file(infile = self.data_file if datafile is None else datafile)
+        data, labels = scraper.get_data_from_file(infile=self.data_file if datafile is None else datafile)
 
         self.set_word_index_from_data(data)
 
@@ -349,7 +350,8 @@ class EmailClassifierModel(object):
         """
 
         :param tuple texts: A list/tuple of texts to compute predictions on
-        :return: Returns a listed of computed values between 0 and 1, 1 being positive and 0 being negative. These Texts correspond to the index of the text string
+        :return: Returns a listed of computed values between 0 and 1, 1 being positive and 0 being negative. \
+        These Texts correspond to the index of the text string
         """
 
         # if we don't have any word serialization
@@ -374,12 +376,12 @@ class EmailClassifierModel(object):
         return self.model.predict(to_process)
 
 
-def test_class(ModelObject):
+def test_class(modelobject):
 
     while True:
         to_input = input("Enter an email snippet [max 200 chars]: ")
 
-        pred = ModelObject.predict(to_input)
+        pred = modelobject.predict(to_input)
 
         print(pred)
 
@@ -390,5 +392,3 @@ if __name__ == "__main__":
     print(d.__dict__)
 
     test_class(d)
-
-
