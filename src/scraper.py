@@ -139,7 +139,7 @@ def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(
 def message_to_texts(message):
     """ Takes a given message as a JSON element retrieved from the Google API
 
-    :param type message: A Message Object returned from the Gmail service.users().messages().get() method
+    :param dict message: A Message Object returned from the Gmail service.users().messages().get() method
     :return: List of texts decoded from base64 into normal texts. This is returned as a list since messages can be\
      fragmented
     :rtype: list
