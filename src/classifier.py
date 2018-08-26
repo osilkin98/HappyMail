@@ -11,7 +11,7 @@ class EmailClassifierModel(object):
 
     def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3, epochs=100,
                  model_dir=None, logging_dir=None, model=None, index_file=None, data_file=None, model_file=None,
-                 auto_train=True, load_model=True):
+                 auto_train=False, load_model=True):
         """
         :param int vocab_size: Maximum length of total vocabulary learned from data
         :param int num_features: Number of Features word vectors will have
@@ -28,7 +28,7 @@ class EmailClassifierModel(object):
         :param str model_file: Filepath to where the model should be loaded from or saved to
         :param bool auto_train: Flag to indicate whether or not the model should be retrained if we couldn't load it
         :param bool load_model: Flag to indicate whether we should ignore a model file if it was already saved or if \
-        we load it
+         we load it
         """
 
         # To set the model's hyper-parameters
@@ -108,7 +108,7 @@ class EmailClassifierModel(object):
                     self.set_word_index_from_data(data, overwrite=True)
 
         if not self.trained and auto_train:
-            self.train_model_with_data(epoch=epochs)
+            self.train_model_with_data(epoch=self.epochs)
 
         # If the index file doesn't exist, we should do nothing because it should learn the word indexes
         # Through the actual training process since the index file was not specified
@@ -387,8 +387,8 @@ def test_class(modelobject):
 
 
 if __name__ == "__main__":
-    d = EmailClassifierModel(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5", epochs=400)
+    d = EmailClassifierModel(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5")
 
-    print(d.__dict__)
+    d.train_model_with_data(epoch=75)
 
-    test_class(d)
+    # test_class(d)
