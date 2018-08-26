@@ -1,4 +1,5 @@
-import pip
+from subprocess import call
+from sys import executable
 from distutils.core import setup
 from distutils.command.build_py import build_py
 import os
@@ -10,7 +11,7 @@ needed_packages = ['apiclient>=1.0.3',
                    'google-api-python-client-py3>=1.2',
                    'oauth2client>=4.1.2',
                    'bs4>=0.0.1',
-                   'tensorflow-gpu>=1.10.1',
+                   'tensorflow-gpu',
                    'keras>=2.2.2']
 
 
@@ -20,15 +21,14 @@ def install_packages(packages):
     :return: Nothing
     """
     for package in packages:
-        try:
-            print("Trying to install {}...".format(package))
-            pip.main(['install', '--user', package])
-        except SystemExit as e:
-            print(e)
-            resp = input("\nWas the error as a cause of trying to install tensorflow-gpu?[y/n] ")[-1].lower()
-            if resp == 'y':
-                pip.main(['install', '--user', 'tensorflow>=1.10.1'])
+        pip_command = "{} -m pip install -r {} --user".format(executable, package)
+        print("Running {}".format(pip_command))
+        retcode = call(pip_command.split(' '))
 
+        if retcode is not 0:
+            print("return code was {} when trying to install {}".format(retcode, packages))
+            if package == 'tensorflow-gpu':
+                call("{} -m pip install -r tensorflow --user".format(executable).split(' '))
 
 
 # Override build_py to be able to execute a command
