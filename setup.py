@@ -21,14 +21,14 @@ def install_packages(packages):
     :return: Nothing
     """
     for package in packages:
-        pip_command = "{} -m pip install -r {} --user".format(executable, package)
+        pip_command = "{} -m pip install {} --user".format(executable, package)
         print("Running {}".format(pip_command))
         retcode = call(pip_command.split(' '))
 
         if retcode is not 0:
             print("return code was {} when trying to install {}".format(retcode, packages))
             if package == 'tensorflow-gpu':
-                call("{} -m pip install -r tensorflow --user".format(executable).split(' '))
+                call("{} -m pip install tensorflow --user".format(executable).split(' '))
 
 
 # Override build_py to be able to execute a command
