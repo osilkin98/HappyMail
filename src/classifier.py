@@ -346,10 +346,10 @@ class EmailClassifierModel(object):
         # Save the model
         self.model.save(filepath=self.model_file if savefile is None else savefile, overwrite=overwrite)
 
-    def predict(self, texts: tuple):
+    def predict(self, texts):
         """
 
-        :param tuple texts: A list/tuple of texts to compute predictions on
+        :param tuple | list texts: A list/tuple of texts to compute predictions on
         :return: Returns a listed of computed values between 0 and 1, 1 being positive and 0 being negative. \
         These Texts correspond to the index of the text string
         """
