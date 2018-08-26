@@ -5,21 +5,38 @@ import os
 from os.path import exists
 
 
+needed_packages = ['apiclient>=1.0.3',
+                   'httplib2>=0.9.2',
+                   'google-api-python-client-py3>=1.2',
+                   'oauth2client>=4.1.2',
+                   'bs4>=0.0.1',
+                   'tensorflow-gpu>=1.10.1',
+                   'keras>=2.2.2']
+
 
 def install_packages(packages):
     """
-    :param packages: List of Python Package names to be installed by pip in the format 'package-name>=version.number'
+    :param list packages: List of Python Package names to be installed by pip in the format 'package-name>=version.number'
     :return: Nothing
     """
-    try:
-        for package in packages:
+    for package in packages:
+        try:
+            print("Trying to install {}...".format(package))
             pip.main(['install', '--user', package])
-    except SystemExit as e:
-        print(e)
+        except SystemExit as e:
+            print(e)
+            resp = input("\nWas the error as a cause of trying to install tensorflow-gpu?[y/n] ")[-1].lower()
+            if resp == 'y':
+                pip.main(['install', '--user', 'tensorflow>=1.10.1'])
+
+
 
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
     def run(self):
+        print("Trying to install packages: {}".format(needed_packages))
+
+        install_packages(needed_packages)
 
         # Now we actually create the config files
         print("Creating config files")
