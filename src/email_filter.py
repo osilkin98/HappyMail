@@ -1,7 +1,8 @@
 # initial commit
 # Gmail API imports
+import scraper
 from scraper import get_gmail_service
-import classifier
+from classifier import EmailClassifierModel
 import json
 from configuration_files import keys
 from time import sleep
@@ -17,9 +18,13 @@ from time import sleep
 def get_email_list(service=get_gmail_service(), last_message_id=None):
     """
 
-    :param service service: Google API Service Object, if one is not provided, it'll be automatically generated from scraper.get_gmail_service()
-    :param str last_message_id: The ID hash of the message that we recorded last, so we can prevent the program from making too many requests
-    :return: A list of Un-decoded Messages in JSON format, as well as the message ID for the first message received, respectively
+    :param service service: Google API Service Object, if one is not provided, it'll be automatically generated from\
+    scraper.get_gmail_service()
+    :param str last_message_id: The ID hash of the message that we recorded last, so we can prevent the program from \
+    making too many requests
+    :return: A list of Un-decoded Messages in JSON format, as well as the message ID for the first message received,\
+     respectively
+    :rtype: list
     """
     messages_meta = service.users().messages().list(userId=keys.user_id).execute()
 
@@ -42,6 +47,24 @@ def get_email_list(service=get_gmail_service(), last_message_id=None):
         messages.append(full_message)
 
     return messages, first_message_id
+
+
+def classify_message(message):
+    """ Classifies whether a Gmail message expresses positive or negative sentiment
+
+    :param dict message: Gmail message given in JSON
+    :return: A value between 1 and 0 of how positive or negative, respectively, the message is
+    :rtype: float
+    """
+
+    message_texts = scraper.message_to_texts(message)
+    classifier = EmailClassifierModel(model_file='models/trained_net.h5')
+
+    probabilities = classifier.predict(message_texts)
+
+    print(probabilities)
+
+    return 0
 
 
 def classify_messages():
