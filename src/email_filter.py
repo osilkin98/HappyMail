@@ -6,6 +6,7 @@ from classifier import EmailClassifier
 import json
 from configuration_files import keys
 from time import sleep
+from time import time
 
 """ 
     We need to write a function that fetches a list of emails and keep scrolling through
@@ -84,9 +85,13 @@ def classify_message(message, classifier=EmailClassifier(model_file='models/trai
 
     return min(probabilities)[0], probabilities, classifier
 
+def classify_messages(max_messages=None):
+    """
 
-def classify_messages():
-    messages, first_message = get_email_list()
+    :param int | None max_messages: Maximum number of messages to grab
+    :return: Nothing
+    """
+    messages, first_message = get_email_list(max_lookback=max_messages)
 
 
 
