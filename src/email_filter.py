@@ -90,29 +90,27 @@ def classify_message(message, classifier=EmailClassifier(model_file='models/trai
     :param EmailClassifier classifier: The classifier model which will be used to inspect the emails\
      If None is specified, it'll default to using the one trained in 'models/trained_net.h5'.
      If it doesn't exist, then it will attempt to train itself.
-    :return: A value between 1 and 0 of how positive or negative, respectively, the message is, \
-     along with a list of all the other probabilities.
-    :rtype: float, list
+    :return: A value between 1 and 0 of how positive or negative, respectively, the message is.
+    :rtype: float
     """
+    try:
+        message_texts = scraper.message_to_texts(message)
 
-    message_texts = scraper.message_to_texts(message)
+        assert len(message_texts) > 0
 
-    probabilities = classifier.predict(message_texts)
+        probabilities = classifier.predict(message_texts)
 
-    '''
-    max_len = 0
-    for text in message_texts:
-        max_len = max(len(text), max_len)
+        print("Probabilities: {}, \nlowest probability attained: {}".format(
+            probabilities, min(probabilities)))
 
-    for i in range(len(message_texts)):
-        print("{}\n\nMessage Text({}): \"{}\"\nProbability({}): {}\n".format(
-            '#' * max_len, i, message_texts[i], i, probabilities[i]))
-    '''
+        return min(probabilities)[0]
 
-    print("Probabilities: {}, \nlowest probability attained: {}".format(
-        probabilities, min(probabilities)))
+    except AssertionError:
+        print("Message with ID '{}' gave back no classifiable text:\n\nJSON Dump:\n{}".format(
+            message['id'], json.dumps(message, indent=4)))
 
-    return min(probabilities)[0], probabilities, classifier
+        return 1
+
 
 def classify_messages(max_messages=None):
     """
