@@ -7,7 +7,7 @@ from tensorflow.python.framework.errors_impl import InternalError as TFInternalE
 
 
 # a class to put the email classifier into so that it can run
-class EmailClassifierModel(object):
+class EmailClassifier(object):
 
     def __init__(self, vocab_size=400, num_features=40, input_length=2000, dropout_rate=0.3, epochs=100,
                  model_dir=None, logging_dir=None, model=None, index_file=None, data_file=None, model_file=None,
@@ -387,7 +387,7 @@ def test_class(modelobject):
 
 
 if __name__ == "__main__":
-    d = EmailClassifierModel(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5")
+    d = EmailClassifier(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5")
 
     d.train_model_with_data(epoch=75)
 
