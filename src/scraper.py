@@ -175,6 +175,41 @@ def message_to_texts(message):
     return messages
 
 
+def message_to_texts_traversal(message):
+    """ Retrieves data members from within the message by traversing it pre-fix as a tree
+
+    :param dict message: A Message Object returned from the Gmail service.users().messages().get() method
+    :return: A list of text fields obtained from within the message. decoded from base64 to plaintext
+    :rtype: list
+    """
+
+    """ The messages need to be traversed in the following order:
+        {
+            "payload": { 
+                "body": { 
+                    "size": <bytesize>
+                    // data field may not be present, and so we need to continue looking into parts
+                },
+                ...,
+                // parts contains a list of separate payload objects, each of which needs to be 
+                // recursively traversed in pre-fix order, and once we find a body field with
+                // a data field inside it, we will decode it from base64 and add it to our list
+                // of text items. Then once we've reached the bottom, we will just go back
+                // and continue recursing into the next payload object and so forth until we reach the end
+                "parts": [ 
+                    {
+                        "body": { ... },
+                        "parts": [ ... ],
+                        ...
+                    },
+                    ...
+                ]
+            }
+        }
+    """
+
+
+
 def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=False):
     """Obtains Messages from the user's defined email labels
 
