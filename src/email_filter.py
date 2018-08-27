@@ -14,6 +14,28 @@ from time import time
 """
 
 
+def print_message(message):
+    """Prints a Gmail Message to the terminal
+
+    :param dict message: Gmail message formatted from JSON format into a Python dict
+    :return: Nothing
+    """
+
+    # To obtain the actual message text as a list
+    message_parts = scraper.message_to_texts(message)
+
+    max_length = 0
+
+    # To set the maximum length for the part formatting
+    for message in message_parts:
+        max_length = max(len(message), max_length)
+
+    for message in message_parts:
+        print("{}\n{}\n".format('-'*max_length, message))
+
+    print('-'*max_length)
+
+
 # This will just return a list of emails that we can then process
 # In the future we should just continue making requests and extending the list until the last_message_id is reached
 def get_email_list(service=get_gmail_service(), last_message_id=None, max_lookback=None):
