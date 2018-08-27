@@ -120,7 +120,21 @@ def classify_messages(max_messages=None):
     """
     messages, first_message = get_email_list(max_lookback=max_messages)
 
+    startup = time()
+    classifier = EmailClassifier(model_file='models/trained_net.h5')
+    end = time()
+    print("Initializing the classifier took {}secs".format(end - startup))
+    for message in messages:
+        startup = time()
+        prob = classify_message(message, classifier)
+        end = time()
+        print("Classifying message with ID [{}] took {} secs".format(message['id'], end - startup))
 
+        print("Message is {:.2%} likely to be negative".format(1-prob))
+
+        if prob <= 0.5:
+            print("\n\n{} MESSAGE {} IS NEGATIVE {}\n\n".format('#'*15, message['id'], '#'*15))
+            print_message(message)
 
 
 if __name__== '__main__':
