@@ -14,26 +14,33 @@ from time import time
 """
 
 
-def print_message(message):
+def print_message(message, snippet=True):
     """Prints a Gmail Message to the terminal
 
     :param dict message: Gmail message formatted from JSON format into a Python dict
+    :param bool snippet: Flag to indicate whether we should print a snippet of the message or the whole thing. \
+     On by default.
     :return: Nothing
     """
 
-    # To obtain the actual message text as a list
-    message_parts = scraper.message_to_texts(message)
+    if snippet:
+        print("{}\nMESSAGE ID: {}\nSnippet: {}\n{}".format('#'*len(message['snippet']),
+                                                           message['id'], message['snippet'],
+                                                           '#'*len(message['snippet'])))
+    else:
+        # To obtain the actual message text as a list
+        message_parts = scraper.message_to_texts(message)
 
-    max_length = 0
+        max_length = 0
 
-    # To set the maximum length for the part formatting
-    for message in message_parts:
-        max_length = max(len(message), max_length)
+        # To set the maximum length for the part formatting
+        for message in message_parts:
+            max_length = max(len(message), max_length)
 
-    for message in message_parts:
-        print("{}\n{}\n".format('-'*max_length, message))
+        for message in message_parts:
+            print("{}\n{}\n".format('-'*max_length, message))
 
-    print('-'*max_length)
+        print('-'*max_length)
 
 
 # This will just return a list of emails that we can then process
