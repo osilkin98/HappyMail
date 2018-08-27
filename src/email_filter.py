@@ -138,8 +138,4 @@ def classify_messages(max_messages=None):
 
 
 if __name__== '__main__':
-    email_list, first = get_email_list(max_lookback=1)
-
-    print(json.dumps(email_list, indent=4))
-    for message in email_list:
-        classify_message(message)
+    classify_messages()
