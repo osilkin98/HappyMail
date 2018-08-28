@@ -176,7 +176,7 @@ def message_to_texts(message):
 
 
 def message_to_texts_traversal(message):
-    """ Retrieves data members from within the message by traversing it pre-fix as a tree
+    """ Retrieves data members from within the message by traversing it pre-fix with a stack
 
     :param dict message: A Message Object returned from the Gmail service.users().messages().get() method
     :return: A list of text fields obtained from within the message. decoded from base64 to plaintext
@@ -206,8 +206,48 @@ def message_to_texts_traversal(message):
                 ]
             }
         }
+        
+    the message is structured like a tree where the payload is node that has either 
+    one or two key data members. Either it will have a parts child and a body child which 
+    means that the message itself is fragmented, or it will have just the body child, 
+    which will typically contain data. To ensure that we grab all the data, we traverse it 
+    using postfix traversal, in which we will recursively add payloads to the stack and then 
+    once we no longer have a parts child we will start looking at the body children and then
+    we pop the payload object off the stack and go onto the next one until the stack is 
+    empty, then we just return the list of messages
+        
+        
     """
+    # Append the base message payload to the stack
+    payload_stack, texts = [message['payload']], []
 
+    while len(payload_stack) > 0:
+
+        current_payload = payload_stack.pop()
+
+        # retrieve the data from the body
+        if current_payload['body']['size'] != 0:
+            # we have to load the text in as a base64 decoded string of text since it's formatted as HTML
+            soup = bs.BeautifulSoup(base64.urlsafe_b64decode(current_payload['body']['data']).decode('utf-8'),
+                                    'html.parser')
+
+            # We have to remove all the <script> and <style> elements that don't get removed with get_text()
+            for script in soup(['script', 'style']):
+                # Delete them
+                script.decompose()
+
+            texts.append(soup.get_text())
+
+        if 'parts' in current_payload:
+            # We can try iteratively doing this
+
+            for payload in current_payload['parts']:
+                payload_stack.append(payload)
+
+            # Or we can try to do this by simple addition
+            # payload_stack += current_payload['parts']
+
+    return texts
 
 
 def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=False):
