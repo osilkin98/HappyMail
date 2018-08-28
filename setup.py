@@ -11,7 +11,7 @@ needed_packages = ['apiclient>=1.0.3',
                    'google-api-python-client-py3>=1.2',
                    'oauth2client>=4.1.2',
                    'bs4>=0.0.1',
-                   'tensorflow-gpu',
+                   'tensorflow>=1.10.1' if call(['which', 'nvidia-smi']) != 0 else 'tensorflow-gpu>=1.10.1',
                    'keras>=2.2.2']
 
 
@@ -21,14 +21,13 @@ def install_packages(packages):
     :return: Nothing
     """
     for package in packages:
+        print("installing package {} with pip" .format(package))
         pip_command = "{} -m pip install {} --user".format(executable, package)
         print("Running {}".format(pip_command))
         retcode = call(pip_command.split(' '))
 
         if retcode is not 0:
             print("return code was {} when trying to install {}".format(retcode, packages))
-            if package == 'tensorflow-gpu':
-                call("{} -m pip install tensorflow --user".format(executable).split(' '))
 
 
 # Override build_py to be able to execute a command
