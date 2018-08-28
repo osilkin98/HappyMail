@@ -29,7 +29,7 @@ def print_message(message, snippet=True):
                                                            '#'*len(message['snippet'])))
     else:
         # To obtain the actual message text as a list
-        message_parts = scraper.message_to_texts(message)
+        message_parts = scraper.message_to_texts_traversal(message)
 
         max_length = 0
 
@@ -94,7 +94,10 @@ def classify_message(message, classifier=None):
     :rtype: float
     """
     try:
-        message_texts = scraper.message_to_texts(message)
+        classifier = classifier if classifier is not None \
+            else EmailClassifier(model_file='models/trained_net.h5', auto_train=True)
+
+        message_texts = scraper.message_to_texts_traversal(message)
 
         assert len(message_texts) > 0
 
