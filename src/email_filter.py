@@ -83,11 +83,11 @@ def get_email_list(service=get_gmail_service(), last_message_id=None, max_lookba
     return messages, first_message_id
 
 
-def classify_message(message, classifier=EmailClassifier(model_file='models/trained_net.h5', auto_train=True)):
+def classify_message(message, classifier=None):
     """ Classifies whether a Gmail message expresses positive or negative sentiment
 
     :param dict message: Gmail message given in JSON
-    :param EmailClassifier classifier: The classifier model which will be used to inspect the emails\
+    :param EmailClassifier | None classifier: The classifier model which will be used to inspect the emails\
      If None is specified, it'll default to using the one trained in 'models/trained_net.h5'.
      If it doesn't exist, then it will attempt to train itself.
     :return: A value between 1 and 0 of how positive or negative, respectively, the message is.
