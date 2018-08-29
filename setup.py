@@ -6,6 +6,17 @@ import os
 from os.path import exists
 
 
+try:
+    import colorama
+except ImportError as IE:
+    print("Module Colorama not found, installing")
+
+    call([executable, '-m', 'pip', '--user', 'colorama==0.3.9'])
+
+finally:
+    from colorama import Fore, Style
+
+
 needed_packages = ['apiclient>=1.0.3',
                    'httplib2>=0.9.2',
                    'google-api-python-client-py3>=1.2',
