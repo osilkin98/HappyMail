@@ -142,3 +142,61 @@ def classify_messages(max_messages=None):
 
 if __name__== '__main__':
     classify_messages()
+
+
+
+    '''
+    # For storing the texts for testing
+    texts_normal_method, texts_traversal_method = [], []
+
+    # For timing the actual methods
+    total_normal_time, total_traversal_time, normal_time, traversal_time, start, stop = 0, 0, 0, 0, 0, 0
+
+    normal_length, traversal_length = 0, 0
+
+    text = None
+
+    for message in messages:
+
+        start = time()
+        text = scraper.message_to_texts(message)
+        stop = time()
+
+        texts_normal_method.append(text)
+
+        normal_length = len(text)
+
+        print("{}\n\nNormal method obtained({}): \n{}\n".format(
+            '#'*200, normal_length, text))
+
+        normal_time = stop - start
+
+        total_normal_time += normal_time
+
+        start = time()
+        text = scraper.message_to_texts_traversal(message)
+        stop = time()
+
+        traversal_time = stop - start
+
+        total_traversal_time += traversal_time
+
+        traversal_length = len(text)
+
+        texts_traversal_method.append(text)
+
+        print("{}\n\nTraversal method obtained({}):\n{}\n".format('-'*200, traversal_length, text))
+
+        print("{}\n\nNormal Time: {}s\nTraversal Time: {}s\n".format('_'*200, normal_time, traversal_time))
+
+        print("# of elements obtained w/ normal method: {}\n# of elements obtained w/ traversal method: {}\n".format(
+            normal_length, traversal_length
+        ))
+
+    print("{}\nNormal Time:\nTotal: {}s\nAverage: {}s\n{}\nTraversal Time:\nTotal: {}s\nAverage: {}s\n\n".format(
+        '#'*50, total_normal_time, total_normal_time/len(messages),
+        '-'*50, total_traversal_time, total_traversal_time/len(messages)))
+
+    print("Length of total normal texts: {}\nLength of total traversal texts: {}".format(len(texts_traversal_method),
+                                                                                         len(texts_traversal_method)))
+    '''
