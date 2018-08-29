@@ -38,14 +38,18 @@ def install_packages(packages):
         retcode = call(pip_command.split(' '))
 
         if retcode is not 0:
-            print("return code was {} when trying to install {}".format(retcode, packages))
+            print(Fore.RED + "return code was {} when trying to install {}".format(retcode, packages))
+        else:
+            print(Fore.GREEN + "installed {}".format(package))
 
+        print(Style.RESET_ALL)
 
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
     def run(self):
-        print("Trying to install packages: {}".format(needed_packages))
 
+        print(Fore.CYAN + "Trying to install packages: {}".format(needed_packages))
+        # Install the packages as defined in the needed_packages list
         install_packages(needed_packages)
 
         # Now we actually create the config files
