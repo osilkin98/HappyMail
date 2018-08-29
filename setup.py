@@ -32,9 +32,9 @@ def install_packages(packages):
     :return: Nothing
     """
     for package in packages:
-        print("installing package {} with pip" .format(package))
+        # print("installing package {} with pip" .format(package))
         pip_command = "{} -m pip install {} --user".format(executable, package)
-        print("Running {}".format(pip_command))
+        # print("Running {}".format(pip_command))
         retcode = call(pip_command.split(' '))
 
         if retcode is not 0:
