@@ -14,7 +14,7 @@ except ImportError as IE:
     call([executable, '-m', 'pip', '--user', 'colorama==0.3.9'])
 
 finally:
-    from colorama import Fore, Style
+    from colorama import Fore
 
 
 needed_packages = ['apiclient>=1.0.3',
@@ -42,7 +42,7 @@ def install_packages(packages):
         else:
             print(Fore.GREEN + "installed {}".format(package))
 
-        print(Style.RESET_ALL)
+        print(Fore.RESET)
 
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
@@ -64,7 +64,7 @@ class my_build_py(build_py):
 
                 print(Fore.GREEN + "Created {}/__init__.py".format(source_dir))
             # Now we actually create the config files
-            print(Style.RESET_ALL+"Creating config files")
+            print(Fore.RESET+"Creating config files")
 
             # We set the directory to the configuration
             configdir = "{}/src/configuration_files".format(os.getcwd())
@@ -77,7 +77,7 @@ class my_build_py(build_py):
             else:
                 print(Fore.GREEN + "Found directory {}".format(configdir))
 
-            print(Style.RESET_ALL)
+            print(Fore.RESET)
 
             if not exists("{}/__init__.py".format(configdir)):
 
@@ -89,12 +89,12 @@ class my_build_py(build_py):
             else:
                 print(Fore.GREEN + "Found {}/__init__.py".format(configdir))
 
-            print(Style.RESET_ALL)
+            print(Fore.RESET)
 
             # If the keys.py file doesn't exist
             if not exists("{}/keys.py".format(configdir)):
                 print(Fore.YELLOW + "{}/keys.py doesn't exist".format(configdir))
-                print(Style.RESET_ALL)
+                print(Fore.RESET)
 
                 # We can create it
                 with open("{}/keys.py".format(configdir), 'w') as key_file:
@@ -110,7 +110,7 @@ class my_build_py(build_py):
             print(Fore.RED + PE)
 
         finally:
-            print(Style.RESET_ALL)
+            print(Fore.RESET)
 
         build_py.run(self)
 
