@@ -12,7 +12,7 @@ try:
 except ImportError as IE:
     print("Module Colorama not found, installing")
 
-    call([executable, '-m', 'pip', '--user', 'colorama==0.3.9'])
+    call([executable, '-m', 'pip', 'install','--user', 'colorama==0.3.9'])
 
 finally:
     from colorama import Fore
