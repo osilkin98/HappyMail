@@ -49,6 +49,7 @@ class my_build_py(build_py):
     def run(self):
 
         print(Fore.CYAN + "Trying to install packages: {}".format(needed_packages))
+        print(Fore.RESET)
         # Install the packages as defined in the needed_packages list
         install_packages(needed_packages)
 
