@@ -44,9 +44,14 @@ def install_packages(packages):
 
         print(Fore.RESET)
 
+
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
     def run(self):
+        """ Initialization Routine for setup.py
+
+        :return:
+        """
 
         print(Fore.CYAN + "Trying to install packages: {}".format(needed_packages))
         print(Fore.RESET)
