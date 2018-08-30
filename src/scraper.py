@@ -6,7 +6,7 @@ from oauth2client.clientsecrets import InvalidClientSecretsError
 from webbrowser import open_new_tab, Error
 import os
 import base64
-import configuration_files.keys as keys
+import src.configuration_files.keys as keys
 import unicodedata
 import json
 # import numpy as np
@@ -99,7 +99,7 @@ def get_gmail_service(filepath="{}/credentials.json".format(keys.config_files), 
     # set the Gmail Scope
     SCOPES = "https://www.googleapis.com/auth/gmail.{}".format(scope_mode)
 
-    store = file.Storage('{}/configuration_files/token.json'.format(os.getcwd()))
+    store = file.Storage('{}/token.json'.format(keys.config_files))
     # Try and get the credentials
     creds = store.get()
     flags = tools.argparser.parse_args(args=[])
