@@ -12,6 +12,7 @@ import json
 # import numpy as np
 import bs4 as bs
 import random
+from time import clock
 
 
 # Shuffle the given messages along with their labels
@@ -299,7 +300,13 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
             messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=label_list,
                                                             includeSpamTrash=include_spam).execute()
 
+            # To write the message meta to the meta messages cache
+            with open("{}/meta_messages{:0>5).json".format(keys.list_cache, int(clock()*10000)), "w") as outfile:
+                json.dump(messages_meta, fp=outfile, ensure_ascii=False, indent=4)
+
             # print(messages_meta)
+
+            message_list = []
 
             # We want to extract the contents of the messages so we have to actually iterate through the
             # list and call the messages().get() method for each message
@@ -309,6 +316,8 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                 # This returns the full message
                 message_full = service.users().messages().get(id=message_meta['id'],
                                                               userId=keys.user_id).execute()
+
+                message_list += message_full
 
                 # print(json.dumps(message_full, indent=4))
                 # We add the body of the message to our messages array, and its respective label
@@ -344,6 +353,12 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                                                                         len(messages), messages,
                                                                         len(message_labels), message_labels))
 
+        # Write the files to the the message cache directory
+        with open("{}/ScraperMessage{:0>5}.json".format(keys.message_cache, int(clock()*10000)), 'w') as outfile:
+            for message in message_list:
+                json.dump(message, outfile, ensure_ascii=False, indent=4)
+                outfile.write('\n')
+
         assert len(messages) == len(message_labels)
 
         return messages, message_labels
@@ -355,6 +370,10 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 def get_label_id_dict(labels, service=get_gmail_service()):
     # all_labels is a json object of the form { "labels": [ ... ] }
     all_labels = service.users().labels().list(userId=keys.user_id).execute()
+
+    # To write the labels to the label cache
+    with open("{}/labels.json".format(keys.label_cache), 'w') as outfile:
+        json.dump(all_labels, fp=outfile, ensure_ascii=False)
 
     # This is the actual dict that will be returned
     labels_dict = dict()
