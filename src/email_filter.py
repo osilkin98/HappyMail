@@ -46,7 +46,8 @@ def print_message(message, snippet=True):
 # This will just return a list of emails that we can then process
 # In the future we should just continue making requests and extending the list until the last_message_id is reached
 def get_email_list(service=None, last_message_id=None, max_lookback=None):
-    """ Fetches a list of Gmail emails linked to the account specified in configuration_files.keys
+    """ Fetches a list of Gmail emails linked to the account specified in configuration_files.keys.
+    The email list is then saved to keys.list_cache/email_list(time).json
 
     :param Resource service: Google API Service Object, if one is not provided, it'll be automatically generated from\
      scraper.get_gmail_service()
@@ -145,9 +146,11 @@ def classify_message(message, classifier=None):
 
 
 def classify_messages(negative_label, positive_label=None, messages=None, classifier=None,
-                      threshold=0.1, service=None, max_messages=None, auto_train=True):
+                      threshold=0.1, service=None, max_messages=None, auto_train=True,
+                      quiet=False, logging=True):
     """
-    Classifies messages within the user's inbox
+    Classifies messages within the user's inbox. The classified messages are reflected within the user's
+    inbox. Additionally, The model also saves logs to the cache/processed/ directories.
 
     :param str negative_label: The ID of the negative laebl into which we put negative emails.
     :param str positive_label: The ID of the positive label into which we put positive emails. If None is specified,
@@ -164,9 +167,10 @@ def classify_messages(negative_label, positive_label=None, messages=None, classi
     :param int | None max_messages: Maximum number of messages to grab
     :param bool auto_train: Flag to specify whether or not we should automatically train the model if no data
      was found
+    :param bool quiet: Flag for whether or not we should output messages to the console
+    :param bool logging: Flag for whether or not we should saves files as json to cache/processed
     :return: Nothing
     """
-
 
     threshold = threshold if positive_label is None and threshold <= 1.0 \
         else threshold if positive_label is not None and threshold <= 0.5\
@@ -182,7 +186,8 @@ def classify_messages(negative_label, positive_label=None, messages=None, classi
         messages, first_message = get_email_list(service=service, max_lookback=max_messages)
 
     # Email classifier object
-    classifier = EmailClassifier(model_file=keys.models + '/trained_net.h5')
+    classifier = classifier if classifier is not None else EmailClassifier(model_file=keys.models + '/trained_net.h5',
+                                                                           auto_train=auto_train)
 
     # Set the bodies here so there's not more time spent on initializing the functions
     negative_body = {'removeLabelIds': [], 'addLabelIds': [negative_label]}  # For negative messages
@@ -202,23 +207,25 @@ def classify_messages(negative_label, positive_label=None, messages=None, classi
 
         # If the probability is likely to be negative
         if prob <= (0 + threshold):
-            print(Fore.LIGHTRED_EX + "Messaged was determined to be " + Fore.RED + "negative" +
-                  Fore.LIGHTRED_EX + " with a probability of " + Fore.CYAN + '{:.2%} '.format(prob) +
-                  Fore.RESET)
+            if not quiet:
+                print(Fore.LIGHTRED_EX + "Messaged was determined to be " + Fore.RED + "negative" +
+                      Fore.LIGHTRED_EX + " with a probability of " + Fore.CYAN + '{:.2%} '.format(prob) +
+                      Fore.RESET)
 
             response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
                                                          body=negative_body).execute()
         elif positive_label is not None and prob >= (1.0 - threshold):
 
             # Message is positive
-            print(Fore.LIGHTGREEN_EX + "Message was determined to be " + Fore.GREEN + "positive" +
-                  Fore.LIGHTGREEN_EX + " with a probability of " + Fore.CYAN + "{:.2%} ".format(prob) +
-                  Fore.RESET)
+            if not quiet:
+                print(Fore.LIGHTGREEN_EX + "Message was determined to be " + Fore.GREEN + "positive" +
+                      Fore.LIGHTGREEN_EX + " with a probability of " + Fore.CYAN + "{:.2%} ".format(prob) +
+                      Fore.RESET)
 
             response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
                                                          body=positive_body).execute()
 
-        if response is not None:
+        if logging and response is not None:
             with open(keys.processed_responses + '/response' + message['id'] + '.json', 'w') as outfile:
                 json.dump(response, outfile, ensure_ascii=False, indent=2)
 
@@ -226,8 +233,9 @@ def classify_messages(negative_label, positive_label=None, messages=None, classi
         message['positive_probability'] = str(prob)
         message['classification_time'] = str(end - startup)
 
-        with open(keys.processed_messages + '/message{}.json'.format(message['id']), 'w') as outfile:
-            json.dump(message, outfile, ensure_ascii=False, indent=2)
+        if logging:
+            with open(keys.processed_messages + '/message{}.json'.format(message['id']), 'w') as outfile:
+                json.dump(message, outfile, ensure_ascii=False, indent=2)
 
 
 if __name__== '__main__':
