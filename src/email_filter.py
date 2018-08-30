@@ -6,6 +6,7 @@ from classifier import EmailClassifier
 import json
 from configuration_files import keys
 from time import sleep, time, clock
+from colorama import Fore
 
 """ 
     We need to write a function that fetches a list of emails and keep scrolling through
@@ -141,18 +142,25 @@ def classify_message(message, classifier=None):
         return 1
 
 
-def classify_messages(service=None, max_messages=None):
-    """ Classifies messages within the user's inbox
+def classify_messages(positive_label, negative_label, threshold=0.1, service=None, max_messages=None):
+    """
+    Classifies messages within the user's inbox
 
+    :param str positive_label: The ID of the positive label into which we put positive emails
+    :param str negative label: The ID of the negative laebl into which we put negative emails
+    :param float threshold: Number between 1 and 0, the percentage from 100% into which we will group the emails.\
+     Note: it cannot be more than 0.5. If it is greater than 0.5 then 0.5 will be used for the cutoff. Meaning that\
+     if it is 51% sure that the message is positive, then it'll be classed as so, but if it is 49% positive,
+     the message will be classed as negative.
     :param Resource | None service: Resource object to be used with the Gmail services. If None, it will use
      the scraper.get_gmail_service() function
     :param int | None max_messages: Maximum number of messages to grab
     :return: Nothing
     """
-
+    # Initialize the service if it was not provided to us
     service = service if service is not None else get_gmail_service()
 
-    labels = scraper.get_specified_labels()
+    threshold = threshold if threshold <= 0.5 else 0.5
 
     # Gets the message list and the first message ID so we know what
     messages, first_message = get_email_list(service=service, max_lookback=max_messages)
@@ -160,14 +168,26 @@ def classify_messages(service=None, max_messages=None):
     # Email classifier object
     classifier = EmailClassifier(model_file='models/trained_net.h5')
 
-
     for message in messages:
         startup = time()
         prob = classify_message(message, classifier)
         end = time()
-        print("Classifying message with ID [{}] took {} secs".format(message['id'], end - startup))
 
-        print("Message is {:.2%} likely to be negative".format(1-prob))
+        # print("Classifying message with ID [{}] took {} secs".format(message['id'], end - startup))
+
+        # print("Message is {:.2%} likely to be negative".format(1-prob))
+
+        # If p >= ~0.9 or whatever 1.0 - threshold gives
+        if prob >= 1.0 - threshold:
+
+            # Message is positive
+            print(Fore.LIGHTGREEN_EX + "Message was determined to be " + Fore.GREEN + "positive" +
+                  Fore.LIGHTGREEN_EX + " with a probability of " + Fore.CYAN + "{:.2%} ".format(prob)+
+                  Fore.RESET)
+
+
+
+
 
         if prob <= 0.5:
             print("\n\n{} MESSAGE {} IS NEGATIVE {}\n\n".format('#'*15, message['id'], '#'*15))
@@ -175,12 +195,24 @@ def classify_messages(service=None, max_messages=None):
 
 
 if __name__== '__main__':
-    messages, last_id = get_email_list(max_lookback=5)
+    '''
+    service = get_gmail_service()
 
-    for message in messages:
-        print("ID:{}\nSnippet: {}\n".format(message['id'], message['snippet']))
+    testing_labels = ('positive_test', 'negative_test')
 
+    labels = scraper.get_specified_labels(testing_labels, service)
 
+    # go through each label in the testing labels list
+    for label in testing_labels:
+
+        # If it's not in the label keys dict that we retrieved
+        if label not in labels.keys():
+            # We create the label we need
+            new_label = scraper.create_label(label, service)
+
+            print("Created {}".format(json.dumps(new_label, indent=2)))
+
+    '''
 
     '''
     # For storing the texts for testing
