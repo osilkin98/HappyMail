@@ -370,7 +370,14 @@ def get_messages_from_labels(labels, service=None, include_spam=False):
 # Takes the users labels as input and returns their IDs in a dict
 # labels is an iterable array/tuple that contains the names of the desired labels
 # Capitalization is required
-def get_label_id_dict(labels, service=None):
+def get_specified_labels(labels, service=None):
+    """ Takes the given labels as input and returns them in a dict formatted as {'name': 'id'}
+
+    :param list | tuple labels: List containng the names of the desired labels to extract
+    :param Resource service: Gmail resource
+    :return: A Dict containing the labels in the format of {'name': 'id'}
+    :rtype: dict
+    """
 
     service = service if service is not None else get_gmail_service()
 
@@ -436,7 +443,7 @@ def create_training_data_from_labels(service=None, outfile=None, overwrite_file=
         labels = ('positive', 'negative')
 
     # This returns us a dictionary with the label names as keys and their ID as the value they map to
-    labels_dict = get_label_id_dict(labels=labels, service=service)
+    labels_dict = get_specified_labels(labels=labels, service=service)
 
     messages, message_labels = get_messages_from_labels(labels=labels_dict, service=service, include_spam=True)
 
