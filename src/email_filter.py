@@ -209,9 +209,9 @@ def classify_messages(negative_label, positive_label=None, messages=None, classi
         # If the probability is likely to be negative
         if prob <= (0 + threshold):
             if not quiet:
-                print(Fore.LIGHTRED_EX + "Messaged was determined to be " + Fore.RED + "negative" +
-                      Fore.LIGHTRED_EX + " with a probability of " + Fore.CYAN + '{:.2%} '.format(prob) +
-                      Fore.RESET)
+                print(Fore.LIGHTRED_EX + "Messaged [ID: {}] was determined to be ".format(message['id']) + Fore.RED
+                      + "negative" + Fore.LIGHTRED_EX + " with a probability of " + Fore.CYAN + '{:.2%} '.format(prob)
+                      + Fore.RESET)
 
             response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
                                                          body=negative_body).execute()
@@ -219,9 +219,10 @@ def classify_messages(negative_label, positive_label=None, messages=None, classi
 
             # Message is positive
             if not quiet:
-                print(Fore.LIGHTGREEN_EX + "Message was determined to be " + Fore.GREEN + "positive" +
-                      Fore.LIGHTGREEN_EX + " with a probability of " + Fore.CYAN + "{:.2%} ".format(prob) +
+                print(Fore.LIGHTGREEN_EX + "Message [ID: {}] was determined to be ".format(message['id'])+ Fore.GREEN +
+                      "positive" +Fore.LIGHTGREEN_EX + " with a probability of " + Fore.CYAN + "{:.2%} ".format(prob) +
                       Fore.RESET)
+
 
             response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
                                                          body=positive_body).execute()
@@ -240,7 +241,7 @@ def classify_messages(negative_label, positive_label=None, messages=None, classi
 
 
 if __name__== '__main__':
-    classify_messages('Label_4', threshold=0.3)
+    classify_messages('Label_5', threshold=0.3)
     '''
     service = get_gmail_service()
 
