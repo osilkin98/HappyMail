@@ -128,7 +128,7 @@ def obtain_credentials(email):
 
     # If we don't have a credentials.json file
     if not exists(os.getcwd() + '/' + needed_directories['config_files'] + '/credentials.json'):
-        wait_time = 10
+        wait_time = 15
 
         print(Style.BRIGHT + Back.RED + "IMPORTANT" + Style.RESET_ALL +
               ": In {} seconds, a webpage will open to a page with the download link to the ".format(
