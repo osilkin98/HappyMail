@@ -152,6 +152,8 @@ def classify_messages(service=None, max_messages=None):
 
     service = service if service is not None else get_gmail_service()
 
+    labels = scraper.get_specified_labels()
+
     # Gets the message list and the first message ID so we know what
     messages, first_message = get_email_list(service=service, max_lookback=max_messages)
 
