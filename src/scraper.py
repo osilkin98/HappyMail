@@ -15,6 +15,7 @@ import random
 from time import clock
 
 
+
 # Shuffle the given messages along with their labels
 # Assumption is that messages and labels have matching indices
 def shuffle_messages(messages, labels, seed=None):
@@ -251,7 +252,7 @@ def message_to_texts_traversal(message):
     return texts
 
 
-def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=False):
+def get_messages_from_labels(labels, service=None, include_spam=False):
     """Obtains Messages from the user's defined email labels
 
     :param dict labels: Dictionary Where the key is the label's name and the value is the label's ID
@@ -260,6 +261,9 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
     :return: Returns a list of messages obtained from the labels, and a list of labels at their respective index
     :rtype: list, list
     """
+
+    service = service if service is not None else get_gmail_service()
+
     # Since we want to separate the data from the labels, we'll create
     # Two parallel arrays for the data we retrieve from the Gmail API
     messages, message_labels, message_list = [], [], []
@@ -366,7 +370,10 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 # Takes the users labels as input and returns their IDs in a dict
 # labels is an iterable array/tuple that contains the names of the desired labels
 # Capitalization is required
-def get_label_id_dict(labels, service=get_gmail_service()):
+def get_label_id_dict(labels, service=None):
+
+    service = service if service is not None else get_gmail_service()
+
     # all_labels is a json object of the form { "labels": [ ... ] }
     all_labels = service.users().labels().list(userId=keys.user_id).execute()
 
@@ -392,7 +399,10 @@ def get_label_id_dict(labels, service=get_gmail_service()):
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
 # None selects the default labels to be used
 # The data that gets written to training_data.txt is encoded as base64 to save space
-def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
+def create_training_data_from_labels(service=None, outfile=None, overwrite_file=False, labels=None):
+
+    service = service if service is not None else get_gmail_service()
+
     # if the user select the default outfile
     if outfile is None:
 
@@ -494,14 +504,14 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeri
 
 
 # Create Gmail labels
-def create_label(name, service=None, userId=keys.user_id,
-                 labelListVisibiliy="labelShow", messageListVisibility="show"):
+def create_label(name, service=None, user_id=keys.user_id,
+                 label_list_visibiliy="labelShow", message_list_visibility="show"):
     """ Creates a label using the users.labels,create() method from within the Gmail API
 
     :param str name: The Name of the Gmail label
-    :param Resource | None service: The Gmail Resource Object
-    :param str userId: The email address of the user for whom we wish to create the label
-    :param str labelListVisibiliy: The visibility of the label in the label list in the Gmail web interface.
+    :param Resource service: The Gmail Resource Object
+    :param str user_id: The email address of the user for whom we wish to create the label
+    :param str label_list_visibiliy: The visibility of the label in the label list in the Gmail web interface.
 
      - "labelHide": Do not show the label in the label list,
 
@@ -509,14 +519,24 @@ def create_label(name, service=None, userId=keys.user_id,
 
      - "labelShowIfUnread": Show the label if there are any unread messages with that label.
 
-    :param messageListVisibility: The visibility of messages with this label in the message list in the
+    :param str message_list_visibility: The visibility of messages with this label in the message list in the
      Gmail web interface.
 
      - "hide": Do not show the label in the message list.
 
      - "show": Show the label in the message list. (Default)
 
-    :return: Users.labels Resource of the newly created label
+    :return: label Resource of the newly created label as a dict
     :rtype: dict
     """
+
+    service = service if service is not None else get_gmail_service()
+
+    label_body = {"name": name,
+                  "messageListVisibility": message_list_visibility,
+                  "labelListVisibility": label_list_visibiliy}
+
+    response = service.users().labels().create(userId=user_id, body=label_body).execute()
+
+    return response
 
