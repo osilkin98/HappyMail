@@ -60,13 +60,15 @@ def shuffle_messages(messages, labels, seed=None):
 
 def retrieve_credentials(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), retry=3):
     """ Attempts to have the user download the Google API Credentials file in json format
+     If the filepath specified exists then the program will simply exit
 
     :param str filepath: Path to API Credentials JSON file
     :param int retry: Number of times to try downloading the credentials file
     :raises: FileNotFoundError if the file was downloaded but not to the correct location, or if it failed to download
     """
     if not os.path.exists(filepath):
-        print("could not find file: {}\nRedirecting to Google API key download".format(filepath))
+        if not quiet:
+            print("could not find file: {}\nRedirecting to Google API key download".format(filepath))
 
         for i in range(retry):
             open_new_tab("https://console.developers.google.com/apis/credentials?project=email-filter-212723")
@@ -77,7 +79,9 @@ def retrieve_credentials(filepath="{}/configuration_files/credentials.json".form
 
         # If the filepath was still not found
         if not os.path.exists(filepath):
-            print("Failed to save credentials file, raising File not Found error.")
+            if not quiet:
+                print("Failed to save credentials file, raising File not Found error.")
+
             raise FileNotFoundError("Failed to download {} file passed in as filepath argument.".format(filepath))
 
 
