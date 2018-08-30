@@ -133,7 +133,7 @@ def obtain_credentials(email):
               "Credentials site.\n" + (' ' * len('IMPORTANT: ')) + "You must save the file as " +
               Back.LIGHTWHITE_EX + Style.BRIGHT + os.getcwd() + '/' + needed_directories['config_files']
               + '/' + 'credentials.json' + Style.RESET_ALL + 'as user ' + Style.BRIGHT +Back.LIGHTWHITE_EX+
-              "'\n\n')
+              '\n\n')
 
         # Import it here so we can refresh all the values that rely on the keys.py file within scraper.py
         import src.scraper as scraper
