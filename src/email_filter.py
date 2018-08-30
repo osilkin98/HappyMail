@@ -144,32 +144,45 @@ def classify_message(message, classifier=None):
         return 1
 
 
-def classify_messages(negative_label, positive_label=None, threshold=0.1, service=None, max_messages=None):
+def classify_messages(negative_label, positive_label=None, messages=None, classifier=None,
+                      threshold=0.1, service=None, max_messages=None, auto_train=True):
     """
     Classifies messages within the user's inbox
 
     :param str negative_label: The ID of the negative laebl into which we put negative emails.
     :param str positive_label: The ID of the positive label into which we put positive emails. If None is specified,
      the program will simply ignore the positive labels
+    :param list messages: List of Gmail message objects, if none is specified then get_email_list is called by default.
+    :param EmailClassifier classifier: EmailClassifier model compiled with Keras as a trained model. If None, then one\
+     is called and if it has no data then it will self-train, unless otherwise specified.
     :param float threshold: Number between 1 and 0, the percentage from 100% into which we will group the emails.\
      Note: it cannot be more than 0.5. If it is greater than 0.5 then 0.5 will be used for the cutoff. Meaning that\
      if it is 51% sure that the message is positive, then it'll be classed as so, but if it is 49% positive,
      the message will be classed as negative.
-    :param Resource | None service: Resource object to be used with the Gmail services. If None, it will use
+    :param Resource service: Resource object to be used with the Gmail services. If None, it will use
      the scraper.get_gmail_service() function
     :param int | None max_messages: Maximum number of messages to grab
+    :param bool auto_train: Flag to specify whether or not we should automatically train the model if no data
+     was found
     :return: Nothing
     """
-    # Initialize the service if it was not provided to us
-    service = service if service is not None else get_gmail_service()
 
-    threshold = threshold if threshold <= 0.5 else 0.5
 
-    # Gets the message list and the first message ID so we know what
-    messages, first_message = get_email_list(service=service, max_lookback=max_messages)
+    threshold = threshold if positive_label is None and threshold <= 1.0 \
+        else threshold if positive_label is not None and threshold <= 0.5\
+        else 1.0 if positive_label is None and threshold > 1.0 \
+        else 0.5  # if the positive label is active and threshold exceeds 0.5
+
+    # If there were no messages passed in
+    if messages is None:
+        # Initialize the service if it was not provided to us
+        service = service if service is not None else get_gmail_service()
+
+        # Gets the message list and the first message ID so we know what
+        messages, first_message = get_email_list(service=service, max_lookback=max_messages)
 
     # Email classifier object
-    classifier = EmailClassifier(model_file='models/trained_net.h5')
+    classifier = EmailClassifier(model_file=keys.models + '/trained_net.h5')
 
     # Set the bodies here so there's not more time spent on initializing the functions
     negative_body = {'removeLabelIds': [], 'addLabelIds': [negative_label]}  # For negative messages
@@ -213,12 +226,12 @@ def classify_messages(negative_label, positive_label=None, threshold=0.1, servic
         message['positive_probability'] = str(prob)
         message['classification_time'] = str(end - startup)
 
-        with open(keys.processed_messages +'/message{}.json'.format(message['id']), 'w') as outfile:
+        with open(keys.processed_messages + '/message{}.json'.format(message['id']), 'w') as outfile:
             json.dump(message, outfile, ensure_ascii=False, indent=2)
 
 
 if __name__== '__main__':
-    classify_messages('Label_4', 'Label_5')
+    classify_messages('Label_4', threshold=0.3)
     '''
     service = get_gmail_service()
 
