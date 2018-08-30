@@ -168,6 +168,9 @@ def classify_messages(positive_label, negative_label, threshold=0.1, service=Non
     # Email classifier object
     classifier = EmailClassifier(model_file='models/trained_net.h5')
 
+    negative_body = {'removeLabelIds': [], 'addLabelIds': [negative_label]}  # For negative messages
+    positive_body = {'removeLabelIds': [], 'addLabelIds': [positive_label]}  # For positive messages
+
     for message in messages:
         startup = time()
         prob = classify_message(message, classifier)
@@ -178,12 +181,15 @@ def classify_messages(positive_label, negative_label, threshold=0.1, service=Non
         # print("Message is {:.2%} likely to be negative".format(1-prob))
 
         # If p >= ~0.9 or whatever 1.0 - threshold gives
-        if prob >= 1.0 - threshold:
+        if prob >= (1.0 - threshold):
 
             # Message is positive
             print(Fore.LIGHTGREEN_EX + "Message was determined to be " + Fore.GREEN + "positive" +
                   Fore.LIGHTGREEN_EX + " with a probability of " + Fore.CYAN + "{:.2%} ".format(prob)+
                   Fore.RESET)
+
+            response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
+                                              body=positive_body).execute()
 
 
 
