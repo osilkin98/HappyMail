@@ -73,7 +73,8 @@ def create_subdirectories(directories, base_dir=os.getcwd()):
     # Try to create the subdirectories
     try:
 
-        # Check to see whether or not we're dealing with a dict. 
+        # Check to see whether or not we're dealing with a dict, and loop over all the
+        # Subdirectories specified in the iterable to create them and populated the current path
         for directory in (directories if type(directories) != dict else directories.values()):
 
             # Saves the full path to the directory and strips it on the right for consitency
@@ -125,6 +126,7 @@ class my_build_py(build_py):
         # Install the packages as defined in the needed_packages list
         install_packages(needed_packages)
 
+        create_subdirectories(needed_directories)
         '''
         directories = {"config_files": "src/configuration_files",
                        "models": "models",
@@ -148,7 +150,7 @@ class my_build_py(build_py):
                 for variable, path in needed_directories.items():
 
                     # Actually write to the key_file the variable name and the value we give it
-                    key_file.write('{} = "{}"\n'.format(variable, path))
+                    key_file.write('{} = "{}/{}"\n'.format(variable, os.getcwd(), path))
 
                     print(Fore.GREEN + "Set " + Fore.CYAN + variable + Fore.GREEN +
                           " to '" + Fore.BLUE + path + Fore.RESET + "'") 
