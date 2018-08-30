@@ -148,6 +148,19 @@ def obtain_credentials(email):
             # Try and download the credentials if they don't exist
             scraper.retrieve_credentials(filepath="{}/{}/credentials.json".format(
                 os.getcwd(), needed_directories['config_files']), quiet=True)
+
+            print(Fore.GREEN + "Successfully saved "+Fore.RESET+Back.LIGHTWHITE_EX + "credentials.json"
+                  + Style.RESET_ALL+'\n\n')
+
+            # Create token.json file
+            scraper.get_gmail_service(
+                filepath=os.getcwd() + '/' + needed_directories['config_files'] + '/credentials.json')
+
+            print(Fore.GREEN + "Successfully created "+Fore.RESET+Back.LIGHTWHITE_EX
+                  + "token.json" + Style.RESET_ALL+'\n\n')
+
+            return 0
+
         except FileNotFoundError:
             print(Fore.RED + "Error" + Style.RESET_ALL + ": credentials file wasn't correctly downloaded.\n"+
                   "       Please try downloading the file again and saving it to " + Style.BRIGHT + Back.LIGHTWHITE_EX+
