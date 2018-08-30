@@ -141,18 +141,24 @@ def classify_message(message, classifier=None):
         return 1
 
 
-def classify_messages(max_messages=None):
-    """
+def classify_messages(service=None, max_messages=None):
+    """ Classifies messages within the user's inbox
 
+    :param Resource | None service: Resource object to be used with the Gmail services. If None, it will use
+     the scraper.get_gmail_service() function
     :param int | None max_messages: Maximum number of messages to grab
     :return: Nothing
     """
-    messages, first_message = get_email_list(max_lookback=max_messages)
 
-    startup = time()
+    service = service if service is not None else get_gmail_service()
+
+    # Gets the message list and the first message ID so we know what
+    messages, first_message = get_email_list(service=service, max_lookback=max_messages)
+
+    # Email classifier object
     classifier = EmailClassifier(model_file='models/trained_net.h5')
-    end = time()
-    print("Initializing the classifier took {}secs".format(end - startup))
+
+
     for message in messages:
         startup = time()
         prob = classify_message(message, classifier)
