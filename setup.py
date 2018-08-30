@@ -134,9 +134,9 @@ def obtain_credentials(email):
               ": In {} seconds, a webpage will open to a page with the download link to the ".format(
                   wait_time) +
               "Credentials site.\n" + (' ' * len('IMPORTANT: ')) + "You must save the file as " +
-              Back.LIGHTWHITE_EX + Style.BRIGHT + os.getcwd() + '/' + needed_directories['config_files']
-              + '/' + 'credentials.json' + Style.RESET_ALL + 'as user ' + Style.BRIGHT +Back.LIGHTWHITE_EX+
-              '\n\n')
+              Back.LIGHTWHITE_EX + Style.BRIGHT + os.getcwd() + '/' + needed_directories['config_files'] +
+              '/' + 'credentials.json' + Style.RESET_ALL + ' as user ' + Style.BRIGHT+Back.LIGHTWHITE_EX+email+
+              Style.RESET_ALL + '\n\n')
 
         # Import it here so we can refresh all the values that rely on the keys.py file within scraper.py
         import src.scraper as scraper
@@ -153,9 +153,7 @@ def obtain_credentials(email):
                   "       Please try downloading the file again and saving it to " + Style.BRIGHT + Back.LIGHTWHITE_EX+
                   os.getcwd() + '/' + needed_directories['config_files'] + '/credentials.json' +Style.RESET_ALL)
 
-
-        # Create token.json file
-        scraper.get_gmail_service(filepath=os.getcwd() + '/' + needed_directories['config_files']+'/credentials.json')
+            return 1
 
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
