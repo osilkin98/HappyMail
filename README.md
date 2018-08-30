@@ -1,6 +1,6 @@
 # HappyMail
 ![NpmLicense](https://img.shields.io/npm/l/express.svg)
-![version](https://img.shields.io/badge/version-0.1-brightgreen.svg)
+![version](https://img.shields.io/badge/version-0.7-brightgreen.svg)
 
 This is (currently) a Python application which uses the Gmail API 
 in order to filter out rejection letters for positions that you've applied to.
