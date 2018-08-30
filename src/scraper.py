@@ -493,3 +493,30 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeri
     return messages, labels
 
 
+# Create Gmail labels
+def create_label(name, service=None, userId=keys.user_id,
+                 labelListVisibiliy="labelShow", messageListVisibility="show"):
+    """ Creates a label using the users.labels,create() method from within the Gmail API
+
+    :param str name: The Name of the Gmail label
+    :param Resource | None service: The Gmail Resource Object
+    :param str userId: The email address of the user for whom we wish to create the label
+    :param str labelListVisibiliy: The visibility of the label in the label list in the Gmail web interface.
+
+     - "labelHide": Do not show the label in the label list,
+
+     - "labelShow": Show the label in the label list. (Default)
+
+     - "labelShowIfUnread": Show the label if there are any unread messages with that label.
+
+    :param messageListVisibility: The visibility of messages with this label in the message list in the
+     Gmail web interface.
+
+     - "hide": Do not show the label in the message list.
+
+     - "show": Show the label in the message list. (Default)
+
+    :return: Users.labels Resource of the newly created label
+    :rtype: dict
+    """
+
