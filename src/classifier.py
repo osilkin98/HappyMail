@@ -46,7 +46,7 @@ class EmailClassifier(object):
 
         # Set the actual model file, if it's an absolute file then it overrides self.model_dir
         self.model_file = "{}/model.h5".format(self.model_dir) if model_file is None \
-            else model_file if model_file[-1] == '/' else "{}/{}".format(getcwd(), model_file)
+            else model_file if model_file[0] == '/' else models+'/modelfile.h5'
 
         # If the model path doesn't exist and we weren't passed an absolute path then we create the directories
         if self.model_file[-1] != '/' and not os.path.exists(self.model_dir):
