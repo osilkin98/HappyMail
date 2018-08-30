@@ -58,7 +58,7 @@ def shuffle_messages(messages, labels, seed=None):
         return messages, labels
 
 
-def retrieve_credentials(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), retry=3):
+def retrieve_credentials(filepath="{}/credentials.json".format(keys.config_files), retry=3, quiet=False):
     """ Attempts to have the user download the Google API Credentials file in json format
      If the filepath specified exists then the program will simply exit
 
@@ -86,8 +86,9 @@ def retrieve_credentials(filepath="{}/configuration_files/credentials.json".form
 
 
 # Create Gmail Service
-def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), scope_mode='modify'):
-    """
+def get_gmail_service(filepath="{}/credentials.json".format(keys.config_files), scope_mode='modify'):
+    """ Creates the Gmail Resource Object and the token.json file if that hasn't been created yet. If credentials.json
+     does not exist, the program will attempt to have the user download the file 3 times.
     :param str filepath: Filepath to Gmail API credentials JSON file
     :param str scope_mode: Scope to use when creating Gmail API Token.
     :return: Gmail API Resource object
