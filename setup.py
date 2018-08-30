@@ -5,6 +5,8 @@ from distutils.command.build_py import build_py
 import os
 from os.path import exists
 from getpass import getuser
+from time import sleep
+
 
 
 try:
@@ -15,8 +17,7 @@ except ImportError as IE:
     call([executable, '-m', 'pip', 'install','--user', 'colorama==0.3.9'])
 
 finally:
-    from colorama import Fore
-
+    from colorama import Fore, Style, Back
 
 needed_packages = ['apiclient>=1.0.3',
                    'httplib2>=0.9.2',
@@ -113,6 +114,46 @@ def create_subdirectories(directories, base_dir=os.getcwd()):
         return full_directories
 
 
+# Within the constants file
+def obtain_credentials(email):
+    """ Tries to obtain the credentials.json file from the user
+
+    :param str email: The user's email, which was inputted during the setup
+    :return: 0 if succeeded, or 1 if failed
+    :rtype: int
+    """
+
+    # If we don't have a credentials.json file
+    if not exists(os.getcwd() + '/' + needed_directories['config_files'] + '/credentials.json'):
+        wait_time = 10
+
+        print(Style.BRIGHT + Back.RED + "IMPORTANT" + Style.RESET_ALL +
+              ": In {} seconds, a webpage will open to a page with the download link to the ".format(
+                  wait_time) +
+              "Credentials site.\n" + (' ' * len('IMPORTANT: ')) + "You must save the file as " +
+              Back.LIGHTWHITE_EX + Style.BRIGHT + os.getcwd() + '/' + needed_directories['config_files']
+              + '/' + 'credentials.json' + Style.RESET_ALL + 'as user ' + Style.BRIGHT +Back.LIGHTWHITE_EX+
+              "'\n\n')
+
+        # Import it here so we can refresh all the values that rely on the keys.py file within scraper.py
+        import src.scraper as scraper
+
+        # Wait however many seconds so the user has a chance to read the text
+        sleep(wait_time)
+
+        try:
+            # Try and download the credentials if they don't exist
+            scraper.retrieve_credentials(filepath="{}/{}/credentials.json".format(
+                os.getcwd(), needed_directories['config_files']), quiet=True)
+        except FileNotFoundError:
+            print(Fore.RED + "Error" + Style.RESET_ALL + ": credentials file wasn't correctly downloaded.\n"+
+                  "       Please try downloading the file again and saving it to " + Style.BRIGHT + Back.LIGHTWHITE_EX+
+                  os.getcwd() + '/' + needed_directories['config_files'] + '/credentials.json' +Style.RESET_ALL)
+
+
+        # Create token.json file
+        scraper.get_gmail_service(filepath=os.getcwd() + '/' + needed_directories['config_files']+'/credentials.json')
+
 # Override build_py to be able to execute a command
 class my_build_py(build_py):
     def run(self):
@@ -155,9 +196,17 @@ class my_build_py(build_py):
                     print(Fore.GREEN + "Set " + Fore.CYAN + variable + Fore.GREEN +
                           " to '" + Fore.BLUE + path + Fore.RESET + "'") 
 
-                print(Fore.GREEN + "Created " + Fore.BLUE + "{}/keys.py".format(needed_directories['config_files']) + Fore.RESET)
-                
-                
+            print(Fore.GREEN + "Created " + Fore.BLUE + "{}/keys.py".format(needed_directories['config_files'])
+                  + Fore.RESET)
+
+
+            if obtain_credentials(email) is 0:
+                print(Style.BRIGHT + Back.LIGHTWHITE_EX + "credentials.json" +Style.RESET_ALL+
+                      Fore.GREEN + " and "+Fore.RESET+Style.BRIGHT + Back.LIGHTWHITE_EX +"token.json"+Style.RESET_ALL +
+                      Fore.GREEN + " were successfully created\n" + Style.RESET_ALL )
+
+
+
                 
         except PermissionError as PE:
             print(Fore.RED + "Error: " + Fore.RESET + "user '" + Fore.RED + getuser() + Fore.RESET +
