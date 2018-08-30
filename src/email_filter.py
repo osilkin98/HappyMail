@@ -141,7 +141,7 @@ def classify_messages(max_messages=None):
 
 
 if __name__== '__main__':
-    classify_messages()
+
 
 
 
