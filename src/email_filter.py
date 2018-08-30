@@ -5,8 +5,7 @@ from scraper import get_gmail_service
 from classifier import EmailClassifier
 import json
 from configuration_files import keys
-from time import sleep
-from time import time
+from time import sleep, time, clock
 
 """ 
     We need to write a function that fetches a list of emails and keep scrolling through
@@ -62,6 +61,10 @@ def get_email_list(service=get_gmail_service(), last_message_id=None, max_lookba
         userId=keys.user_id).execute() if max_lookback is None else service.users().messages().list(
         userId=keys.user_id, maxResults=abs(max_lookback)).execute()
 
+    # To write the files to the cache
+    with open("{}/email_list{:0>5}.json".format(keys.list_cache, int(clock()*10000)), 'w') as outfile:
+        json.dump(messages_meta, fp=outfile, ensure_ascii=False, indent=4)
+
     first_message_id = None
 
     messages = []
@@ -74,11 +77,23 @@ def get_email_list(service=get_gmail_service(), last_message_id=None, max_lookba
 
         # if we already processed these emails before
         if last_message_id is not None and last_message_id == message_meta['id']:
+
+            # To write the files to the cache before we exit from the loop
+            with open("{}/EmailListMessage{:0>5}.json".format(keys.message_cache, int(clock() * 10000)),
+                      'w') as outfile:
+                for message in messages:
+                    json.dump(message, outfile, ensure_ascii=False, indent=4)
+
             return messages, first_message_id
 
         full_message = service.users().messages().get(id=message_meta['id'], userId=keys.user_id).execute()
 
         messages.append(full_message)
+
+    # To write the files to the cache
+    with open("{}/EmailListMessage{:0>5}.json".format(keys.message_cache, int(clock()*10000)), 'w') as outfile:
+        for message in messages:
+            json.dump(message, outfile, ensure_ascii=False, indent=4)
 
     return messages, first_message_id
 
@@ -141,7 +156,9 @@ def classify_messages(max_messages=None):
 
 
 if __name__== '__main__':
+    label_ids = scraper.get_label_id_dict(("positive", "negative"))
 
+    print(json.dumps(label_ids, indent=4))
 
 
 
