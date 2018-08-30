@@ -47,10 +47,10 @@ def print_message(message, snippet=True):
 def get_email_list(service=get_gmail_service(), last_message_id=None, max_lookback=None):
     """
 
-    :param service service: Google API Service Object, if one is not provided, it'll be automatically generated from\
-    scraper.get_gmail_service()
-    :param str last_message_id: The ID hash of the message that we recorded last, so we can prevent the program from \
-    making too many requests
+    :param Resource service: Google API Service Object, if one is not provided, it'll be automatically generated from\
+     scraper.get_gmail_service()
+    :param str | None last_message_id: The ID hash of the message that we recorded last, so we can prevent the program from \
+     making too many requests
     :param int | None max_lookback: Maximum number of messages to look back through. Leave None for Google default.
     :return: A list of Un-decoded Messages in JSON format, as well as the message ID for the first message received,\
      respectively
