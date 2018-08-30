@@ -168,36 +168,48 @@ def classify_messages(positive_label, negative_label, threshold=0.1, service=Non
     # Email classifier object
     classifier = EmailClassifier(model_file='models/trained_net.h5')
 
+    # Set the bodies here so there's not more time spent on initializing the functions
     negative_body = {'removeLabelIds': [], 'addLabelIds': [negative_label]}  # For negative messages
     positive_body = {'removeLabelIds': [], 'addLabelIds': [positive_label]}  # For positive messages
 
     for message in messages:
+        # To time the function
         startup = time()
         prob = classify_message(message, classifier)
         end = time()
 
-        # print("Classifying message with ID [{}] took {} secs".format(message['id'], end - startup))
-
-        # print("Message is {:.2%} likely to be negative".format(1-prob))
+        response = None
 
         # If p >= ~0.9 or whatever 1.0 - threshold gives
         if prob >= (1.0 - threshold):
 
             # Message is positive
             print(Fore.LIGHTGREEN_EX + "Message was determined to be " + Fore.GREEN + "positive" +
-                  Fore.LIGHTGREEN_EX + " with a probability of " + Fore.CYAN + "{:.2%} ".format(prob)+
+                  Fore.LIGHTGREEN_EX + " with a probability of " + Fore.CYAN + "{:.2%} ".format(prob) +
                   Fore.RESET)
 
             response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
-                                              body=positive_body).execute()
+                                                         body=positive_body).execute()
 
+        # I don't really like the repetitive structure here but it's a binary problem so whatever
+        elif prob <= (0 + threshold):
+            print(Fore.LIGHTRED_EX + "Messaged was determined to be " + Fore.RED + "negative" +
+                  Fore.LIGHTRED_EX + " with a probability of " + Fore.CYAN + '{:.2%} '.format(prob) +
+                  Fore.RESET)
 
+            response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
+                                                         body=negative_body).execute()
 
+        if response is not None:
+            with open(keys.processed_responses + '/response' + message['id'] + '.json', 'w') as outfile:
+                json.dump(response, outfile, ensure_ascii=False, indent=2)
 
+        # Set the new attributes
+        message['positive_probability'] = prob
+        message['classification_time'] = end - startup
 
-        if prob <= 0.5:
-            print("\n\n{} MESSAGE {} IS NEGATIVE {}\n\n".format('#'*15, message['id'], '#'*15))
-            print_message(message)
+        with open(keys.processed_messages +'/message{}.json'.format(message['id']), 'w') as outfile:
+            json.dump(message, outfile, ensure_ascii=False, indent=2)
 
 
 if __name__== '__main__':
