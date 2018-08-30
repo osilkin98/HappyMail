@@ -4,7 +4,7 @@ import json
 import os
 from os import getcwd
 from tensorflow.python.framework.errors_impl import InternalError as TFInternalError
-
+from src.configuration_files.keys import models, logdir
 
 # a class to put the email classifier into so that it can run
 class EmailClassifier(object):
@@ -39,10 +39,10 @@ class EmailClassifier(object):
         self.epochs = epochs
 
         # Sets the directory for where the file should be saved
-        self.model_dir = model_dir if model_dir is not None else "{}/models".format(getcwd())
+        self.model_dir = model_dir if model_dir is not None else models
 
         # Sets the directory for tensorflow logging
-        self.logging_dir = logging_dir if logging_dir is not None else "{}/logs".format(self.model_dir)
+        self.logging_dir = logging_dir if logging_dir is not None else logging_dir
 
         # Set the actual model file, if it's an absolute file then it overrides self.model_dir
         self.model_file = "{}/model.h5".format(self.model_dir) if model_file is None \
@@ -387,7 +387,7 @@ def test_class(modelobject):
 
 
 if __name__ == "__main__":
-    d = EmailClassifier(input_length=2000, vocab_size=5000, model_file="models/trained_net.h5")
+    d = EmailClassifier(input_length=2000, vocab_size=5000, model_file=models + "/trained_net.h5")
 
     d.train_model_with_data(epoch=75)
 

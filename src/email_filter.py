@@ -125,7 +125,7 @@ def classify_message(message, classifier=None):
     """
     try:
         classifier = classifier if classifier is not None \
-            else EmailClassifier(model_file='models/trained_net.h5', auto_train=True)
+            else EmailClassifier(model_file=keys.models+'/trained_net.h5', auto_train=True)
 
         message_texts = scraper.message_to_texts_traversal(message)
 
