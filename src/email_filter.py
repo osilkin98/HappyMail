@@ -63,7 +63,8 @@ def get_email_list(service=get_gmail_service(), last_message_id=None, max_lookba
 
     # To write the files to the cache
     with open("{}/email_list{:0>5}.json".format(keys.list_cache, int(clock()*10000)), 'w') as outfile:
-        json.dump(messages_meta, fp=outfile, ensure_ascii=False, indent=4)
+        json.dump(messages_meta, fp=outfile, ensure_ascii=False, indent=2)
+        outfile.write('\n')
 
     first_message_id = None
 
@@ -81,8 +82,13 @@ def get_email_list(service=get_gmail_service(), last_message_id=None, max_lookba
             # To write the files to the cache before we exit from the loop
             with open("{}/EmailListMessage{:0>5}.json".format(keys.message_cache, int(clock() * 10000)),
                       'w') as outfile:
+
+                # Dump each message as a json file
                 for message in messages:
-                    json.dump(message, outfile, ensure_ascii=False, indent=4)
+                    # Dump the json message
+                    json.dump(message, outfile, ensure_ascii=False, indent=2)
+                    # Write a newline
+                    outfile.write('\n')
 
             return messages, first_message_id
 
@@ -92,8 +98,13 @@ def get_email_list(service=get_gmail_service(), last_message_id=None, max_lookba
 
     # To write the files to the cache
     with open("{}/EmailListMessage{:0>5}.json".format(keys.message_cache, int(clock()*10000)), 'w') as outfile:
+
+        # Go through each message and dump it as a json object
         for message in messages:
-            json.dump(message, outfile, ensure_ascii=False, indent=4)
+            json.dump(message, outfile, ensure_ascii=False, indent=2)
+
+            # Write a newline following the json object
+            outfile.write('\n')
 
     return messages, first_message_id
 
@@ -156,9 +167,10 @@ def classify_messages(max_messages=None):
 
 
 if __name__== '__main__':
-    label_ids = scraper.get_label_id_dict(("positive", "negative"))
+    messages, last_id = get_email_list(max_lookback=5)
 
-    print(json.dumps(label_ids, indent=4))
+    for message in messages:
+        print("ID:{}\nSnippet: {}\n".format(message['id'], message['snippet']))
 
 
 
