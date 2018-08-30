@@ -262,8 +262,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
     """
     # Since we want to separate the data from the labels, we'll create
     # Two parallel arrays for the data we retrieve from the Gmail API
-    messages = []
-    message_labels = []
+    messages, message_labels, message_list = [], [], []
 
     try:
 
@@ -302,7 +301,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 
             # To write the message meta to the meta messages cache
             with open("{}/meta_messages{:0>5).json".format(keys.list_cache, int(clock()*10000)), "w") as outfile:
-                json.dump(messages_meta, fp=outfile, ensure_ascii=False, indent=4)
+                json.dump(messages_meta, fp=outfile, ensure_ascii=False, indent=2)
 
             # print(messages_meta)
 
@@ -319,7 +318,7 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 
                 message_list += message_full
 
-                # print(json.dumps(message_full, indent=4))
+                # print(json.dumps(message_full, indent=2))
                 # We add the body of the message to our messages array, and its respective label
 
                 # some of these messages will be segmented in parts so we split up into parts
@@ -356,8 +355,8 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
         # Write the files to the the message cache directory
         with open("{}/ScraperMessage{:0>5}.json".format(keys.message_cache, int(clock()*10000)), 'w') as outfile:
             for message in message_list:
-                json.dump(message, outfile, ensure_ascii=False, indent=4)
-                outfile.write('\n')
+                json.dump(message, outfile, ensure_ascii=False, indent=2)
+                outfile.write('\n')  # write a newline
 
         assert len(messages) == len(message_labels)
 
@@ -373,7 +372,8 @@ def get_label_id_dict(labels, service=get_gmail_service()):
 
     # To write the labels to the label cache
     with open("{}/labels.json".format(keys.label_cache), 'w') as outfile:
-        json.dump(all_labels, fp=outfile, ensure_ascii=False, indent=4)
+        json.dump(all_labels, fp=outfile, ensure_ascii=False, indent=2)
+        outfile.write('\n')  # Write a newline
 
     # This is the actual dict that will be returned
     labels_dict = dict()
