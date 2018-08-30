@@ -4,7 +4,7 @@ import json
 import os
 from os import getcwd
 from tensorflow.python.framework.errors_impl import InternalError as TFInternalError
-from src.configuration_files.keys import models, logdir
+from src.configuration_files.keys import models, logdir, index_directory, training_dir
 
 # a class to put the email classifier into so that it can run
 class EmailClassifier(object):
@@ -42,7 +42,7 @@ class EmailClassifier(object):
         self.model_dir = model_dir if model_dir is not None else models
 
         # Sets the directory for tensorflow logging
-        self.logging_dir = logging_dir if logging_dir is not None else logging_dir
+        self.logging_dir = logging_dir if logging_dir is not None else logdir
 
         # Set the actual model file, if it's an absolute file then it overrides self.model_dir
         self.model_file = "{}/model.h5".format(self.model_dir) if model_file is None \
@@ -83,12 +83,12 @@ class EmailClassifier(object):
                                            dropout_rate=self.dropout_rate) if model is None else model
 
         # set the data file
-        self.data_file = "{}/training_data.txt".format(getcwd()) if data_file is None else data_file
+        self.data_file = "{}/training_data.txt".format(training_dir) if data_file is None else data_file
 
         # Create the tokenizer
         self.tokenizer = keras.preprocessing.text.Tokenizer(num_words=self.vocab_size)
 
-        self.index_file = "{}/word_indices.json".format(getcwd()) if index_file is None else index_file
+        self.index_file = "{}/word_indices.json".format(index_directory) if index_file is None else index_file
 
         # Try to set the indices if we already have the file
         if os.path.exists(self.index_file):
