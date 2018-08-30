@@ -142,12 +142,13 @@ def classify_message(message, classifier=None):
         return 1
 
 
-def classify_messages(positive_label, negative_label, threshold=0.1, service=None, max_messages=None):
+def classify_messages(negative_label, positive_label=None, threshold=0.1, service=None, max_messages=None):
     """
     Classifies messages within the user's inbox
 
-    :param str positive_label: The ID of the positive label into which we put positive emails
-    :param str negative label: The ID of the negative laebl into which we put negative emails
+    :param str negative_label: The ID of the negative laebl into which we put negative emails.
+    :param str positive_label: The ID of the positive label into which we put positive emails. If None is specified,
+     the program will simply ignore the positive labels
     :param float threshold: Number between 1 and 0, the percentage from 100% into which we will group the emails.\
      Note: it cannot be more than 0.5. If it is greater than 0.5 then 0.5 will be used for the cutoff. Meaning that\
      if it is 51% sure that the message is positive, then it'll be classed as so, but if it is 49% positive,
@@ -170,8 +171,10 @@ def classify_messages(positive_label, negative_label, threshold=0.1, service=Non
 
     # Set the bodies here so there's not more time spent on initializing the functions
     negative_body = {'removeLabelIds': [], 'addLabelIds': [negative_label]}  # For negative messages
-    positive_body = {'removeLabelIds': [], 'addLabelIds': [positive_label]}  # For positive messages
 
+    # For positive messages
+    positive_body = None if positive_label is None else {'removeLabelIds': [],
+                                                         'addLabelIds': [positive_label]}
     for message in messages:
         # To time the function
         startup = time()
@@ -180,8 +183,17 @@ def classify_messages(positive_label, negative_label, threshold=0.1, service=Non
 
         response = None
 
-        # If p >= ~0.9 or whatever 1.0 - threshold gives
-        if prob >= (1.0 - threshold):
+        # I don't really like the repetitive structure here but it's a binary problem so whatever
+
+        # If the probability is likely to be negative
+        if prob <= (0 + threshold):
+            print(Fore.LIGHTRED_EX + "Messaged was determined to be " + Fore.RED + "negative" +
+                  Fore.LIGHTRED_EX + " with a probability of " + Fore.CYAN + '{:.2%} '.format(prob) +
+                  Fore.RESET)
+
+            response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
+                                                         body=negative_body).execute()
+        elif positive_label is not None and prob >= (1.0 - threshold):
 
             # Message is positive
             print(Fore.LIGHTGREEN_EX + "Message was determined to be " + Fore.GREEN + "positive" +
@@ -191,35 +203,27 @@ def classify_messages(positive_label, negative_label, threshold=0.1, service=Non
             response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
                                                          body=positive_body).execute()
 
-        # I don't really like the repetitive structure here but it's a binary problem so whatever
-        elif prob <= (0 + threshold):
-            print(Fore.LIGHTRED_EX + "Messaged was determined to be " + Fore.RED + "negative" +
-                  Fore.LIGHTRED_EX + " with a probability of " + Fore.CYAN + '{:.2%} '.format(prob) +
-                  Fore.RESET)
-
-            response = service.users().messages().modify(userId=keys.user_id, id=message['id'],
-                                                         body=negative_body).execute()
-
         if response is not None:
             with open(keys.processed_responses + '/response' + message['id'] + '.json', 'w') as outfile:
                 json.dump(response, outfile, ensure_ascii=False, indent=2)
 
         # Set the new attributes
-        message['positive_probability'] = prob
-        message['classification_time'] = end - startup
+        message['positive_probability'] = str(prob)
+        message['classification_time'] = str(end - startup)
 
         with open(keys.processed_messages +'/message{}.json'.format(message['id']), 'w') as outfile:
             json.dump(message, outfile, ensure_ascii=False, indent=2)
 
 
 if __name__== '__main__':
+    classify_messages('Label_4', 'Label_5')
     '''
     service = get_gmail_service()
 
     testing_labels = ('positive_test', 'negative_test')
 
     labels = scraper.get_specified_labels(testing_labels, service)
-
+Label_5
     # go through each label in the testing labels list
     for label in testing_labels:
 
