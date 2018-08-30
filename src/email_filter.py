@@ -177,10 +177,11 @@ def classify_messages(negative_label, positive_label=None, messages=None, classi
         else 1.0 if positive_label is None and threshold > 1.0 \
         else 0.5  # if the positive label is active and threshold exceeds 0.5
 
+    # Initialize the service if it was not provided to us
+    service = service if service is not None else get_gmail_service()
+
     # If there were no messages passed in
     if messages is None:
-        # Initialize the service if it was not provided to us
-        service = service if service is not None else get_gmail_service()
 
         # Gets the message list and the first message ID so we know what
         messages, first_message = get_email_list(service=service, max_lookback=max_messages)
