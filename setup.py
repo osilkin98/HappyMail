@@ -28,8 +28,10 @@ needed_packages = ['apiclient>=1.0.3',
                    'keras>=2.2.2']
 
 needed_directories = {"config_files": "src/configuration_files",
-                      "models": "models",
-                      "logdir": "models/logs",
+                      "models": "cache/models",
+                      "logdir": "cache/models/logs",
+                      "training_dir": "cache/models/training_data",
+                      "index_directory": "cache/models/indices",
                       "cache_dir": "cache",
                       "message_cache": "cache/messages",
                       "label_cache": "cache/labels",
@@ -229,7 +231,7 @@ class my_build_py(build_py):
 
 setup(
     name='HappyMail',
-    version='0.1',
+    version='0.7',
     packages=['src',],
     license='MIT License',
     long_description=open('README.md', mode='r').read(),
