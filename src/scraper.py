@@ -6,12 +6,14 @@ from oauth2client.clientsecrets import InvalidClientSecretsError
 from webbrowser import open_new_tab, Error
 import os
 import base64
-import configuration_files.keys as keys
+import src.configuration_files.keys as keys
 import unicodedata
 import json
 # import numpy as np
 import bs4 as bs
 import random
+from time import clock
+
 
 
 # Shuffle the given messages along with their labels
@@ -56,15 +58,17 @@ def shuffle_messages(messages, labels, seed=None):
         return messages, labels
 
 
-def retrieve_credentials(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), retry=3):
+def retrieve_credentials(filepath="{}/credentials.json".format(keys.config_files), retry=3, quiet=False):
     """ Attempts to have the user download the Google API Credentials file in json format
+     If the filepath specified exists then the program will simply exit
 
     :param str filepath: Path to API Credentials JSON file
     :param int retry: Number of times to try downloading the credentials file
     :raises: FileNotFoundError if the file was downloaded but not to the correct location, or if it failed to download
     """
     if not os.path.exists(filepath):
-        print("could not find file: {}\nRedirecting to Google API key download".format(filepath))
+        if not quiet:
+            print("could not find file: {}\nRedirecting to Google API key download".format(filepath))
 
         for i in range(retry):
             open_new_tab("https://console.developers.google.com/apis/credentials?project=email-filter-212723")
@@ -75,13 +79,16 @@ def retrieve_credentials(filepath="{}/configuration_files/credentials.json".form
 
         # If the filepath was still not found
         if not os.path.exists(filepath):
-            print("Failed to save credentials file, raising File not Found error.")
+            if not quiet:
+                print("Failed to save credentials file, raising File not Found error.")
+
             raise FileNotFoundError("Failed to download {} file passed in as filepath argument.".format(filepath))
 
 
 # Create Gmail Service
-def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(os.getcwd()), scope_mode='modify'):
-    """
+def get_gmail_service(filepath="{}/credentials.json".format(keys.config_files), scope_mode='modify'):
+    """ Creates the Gmail Resource Object and the token.json file if that hasn't been created yet. If credentials.json
+     does not exist, the program will attempt to have the user download the file 3 times.
     :param str filepath: Filepath to Gmail API credentials JSON file
     :param str scope_mode: Scope to use when creating Gmail API Token.
     :return: Gmail API Resource object
@@ -92,7 +99,7 @@ def get_gmail_service(filepath="{}/configuration_files/credentials.json".format(
     # set the Gmail Scope
     SCOPES = "https://www.googleapis.com/auth/gmail.{}".format(scope_mode)
 
-    store = file.Storage('{}/configuration_files/token.json'.format(os.getcwd()))
+    store = file.Storage('{}/token.json'.format(keys.config_files))
     # Try and get the credentials
     creds = store.get()
     flags = tools.argparser.parse_args(args=[])
@@ -250,7 +257,7 @@ def message_to_texts_traversal(message):
     return texts
 
 
-def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=False):
+def get_messages_from_labels(labels, service=None, include_spam=False):
     """Obtains Messages from the user's defined email labels
 
     :param dict labels: Dictionary Where the key is the label's name and the value is the label's ID
@@ -259,10 +266,12 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
     :return: Returns a list of messages obtained from the labels, and a list of labels at their respective index
     :rtype: list, list
     """
+
+    service = service if service is not None else get_gmail_service()
+
     # Since we want to separate the data from the labels, we'll create
     # Two parallel arrays for the data we retrieve from the Gmail API
-    messages = []
-    message_labels = []
+    messages, message_labels, message_list = [], [], []
 
     try:
 
@@ -299,7 +308,13 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
             messages_meta = service.users().messages().list(userId=keys.user_id, labelIds=label_list,
                                                             includeSpamTrash=include_spam).execute()
 
+            # To write the message meta to the meta messages cache
+            with open("{}/meta_messages{:0>5).json".format(keys.list_cache, int(clock()*10000)), "w") as outfile:
+                json.dump(messages_meta, fp=outfile, ensure_ascii=False, indent=2)
+
             # print(messages_meta)
+
+            message_list = []
 
             # We want to extract the contents of the messages so we have to actually iterate through the
             # list and call the messages().get() method for each message
@@ -310,7 +325,9 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                 message_full = service.users().messages().get(id=message_meta['id'],
                                                               userId=keys.user_id).execute()
 
-                # print(json.dumps(message_full, indent=4))
+                message_list += message_full
+
+                # print(json.dumps(message_full, indent=2))
                 # We add the body of the message to our messages array, and its respective label
 
                 # some of these messages will be segmented in parts so we split up into parts
@@ -344,6 +361,12 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
                                                                         len(messages), messages,
                                                                         len(message_labels), message_labels))
 
+        # Write the files to the the message cache directory
+        with open("{}/ScraperMessage{:0>5}.json".format(keys.message_cache, int(clock()*10000)), 'w') as outfile:
+            for message in message_list:
+                json.dump(message, outfile, ensure_ascii=False, indent=2)
+                outfile.write('\n')  # write a newline
+
         assert len(messages) == len(message_labels)
 
         return messages, message_labels
@@ -352,9 +375,24 @@ def get_messages_from_labels(labels, service=get_gmail_service(), include_spam=F
 # Takes the users labels as input and returns their IDs in a dict
 # labels is an iterable array/tuple that contains the names of the desired labels
 # Capitalization is required
-def get_label_id_dict(labels, service=get_gmail_service()):
+def get_specified_labels(labels, service=None):
+    """ Takes the given labels as input and returns them in a dict formatted as {'name': 'id'}
+
+    :param list | tuple labels: List containng the names of the desired labels to extract
+    :param Resource service: Gmail resource
+    :return: A Dict containing the labels in the format of {'name': 'id'}
+    :rtype: dict
+    """
+
+    service = service if service is not None else get_gmail_service()
+
     # all_labels is a json object of the form { "labels": [ ... ] }
     all_labels = service.users().labels().list(userId=keys.user_id).execute()
+
+    # To write the labels to the label cache
+    with open("{}/labels.json".format(keys.label_cache), 'w') as outfile:
+        json.dump(all_labels, fp=outfile, ensure_ascii=False, indent=2)
+        outfile.write('\n')  # Write a newline
 
     # This is the actual dict that will be returned
     labels_dict = dict()
@@ -373,7 +411,10 @@ def get_label_id_dict(labels, service=get_gmail_service()):
 # Scrape the inbox labels for emails and save them in memory + (write them to a data file)
 # None selects the default labels to be used
 # The data that gets written to training_data.txt is encoded as base64 to save space
-def create_training_data_from_labels(service=get_gmail_service(), outfile=None, overwrite_file=False, labels=None):
+def create_training_data_from_labels(service=None, outfile=None, overwrite_file=False, labels=None):
+
+    service = service if service is not None else get_gmail_service()
+
     # if the user select the default outfile
     if outfile is None:
 
@@ -407,7 +448,7 @@ def create_training_data_from_labels(service=get_gmail_service(), outfile=None, 
         labels = ('positive', 'negative')
 
     # This returns us a dictionary with the label names as keys and their ID as the value they map to
-    labels_dict = get_label_id_dict(labels=labels, service=service)
+    labels_dict = get_specified_labels(labels=labels, service=service)
 
     messages, message_labels = get_messages_from_labels(labels=labels_dict, service=service, include_spam=True)
 
@@ -473,4 +514,41 @@ def get_data_from_file(infile="{}/training_data.txt".format(os.getcwd()), numeri
 
     return messages, labels
 
+
+# Create Gmail labels
+def create_label(name, service=None, user_id=keys.user_id,
+                 label_list_visibiliy="labelShow", message_list_visibility="show"):
+    """ Creates a label using the users.labels,create() method from within the Gmail API
+
+    :param str name: The Name of the Gmail label
+    :param Resource service: The Gmail Resource Object
+    :param str user_id: The email address of the user for whom we wish to create the label
+    :param str label_list_visibiliy: The visibility of the label in the label list in the Gmail web interface.
+
+     - "labelHide": Do not show the label in the label list,
+
+     - "labelShow": Show the label in the label list. (Default)
+
+     - "labelShowIfUnread": Show the label if there are any unread messages with that label.
+
+    :param str message_list_visibility: The visibility of messages with this label in the message list in the
+     Gmail web interface.
+
+     - "hide": Do not show the label in the message list.
+
+     - "show": Show the label in the message list. (Default)
+
+    :return: label Resource of the newly created label as a dict
+    :rtype: dict
+    """
+
+    service = service if service is not None else get_gmail_service()
+
+    label_body = {"name": name,
+                  "messageListVisibility": message_list_visibility,
+                  "labelListVisibility": label_list_visibiliy}
+
+    response = service.users().labels().create(userId=user_id, body=label_body).execute()
+
+    return response
 
