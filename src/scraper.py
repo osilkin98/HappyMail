@@ -373,7 +373,7 @@ def get_label_id_dict(labels, service=get_gmail_service()):
 
     # To write the labels to the label cache
     with open("{}/labels.json".format(keys.label_cache), 'w') as outfile:
-        json.dump(all_labels, fp=outfile, ensure_ascii=False)
+        json.dump(all_labels, fp=outfile, ensure_ascii=False, indent=4)
 
     # This is the actual dict that will be returned
     labels_dict = dict()
