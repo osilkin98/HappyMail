@@ -231,7 +231,7 @@ class my_build_py(build_py):
 
 setup(
     name='HappyMail',
-    version='0.5',
+    version='0.7',
     packages=['src',],
     license='MIT License',
     long_description=open('README.md', mode='r').read(),
