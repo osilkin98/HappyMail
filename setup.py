@@ -33,7 +33,10 @@ needed_directories = {"config_files": "src/configuration_files",
                       "cache_dir": "cache",
                       "message_cache": "cache/messages",
                       "label_cache": "cache/labels",
-                      "list_cache": "cache/lists"}
+                      "list_cache": "cache/lists",
+                      "classify_dir": "cache/processed/",
+                      "processed_messages": "cache/processed/messages",
+                      "processed_responses": "cache/processed/responses"}
 
 
 def install_packages(packages):
